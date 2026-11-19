@@ -1,0 +1,31 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+import { navigation } from '@/data/navigation';
+---
+
+<BaseLayout title="Page not found" description="The page you were looking for does not exist." noindex>
+  <div class="shell grid gap-x-8 gap-y-6 py-24 lg:grid-cols-12 lg:py-40">
+    <p class="label lg:col-span-3"><span class="text-accent">404</span> / Not found</p>
+    <div class="lg:col-span-9">
+      <h1 class="max-w-3xl text-title">This route does not resolve to anything.</h1>
+      <p class="mt-6 max-w-xl text-lead text-muted">
+        The page may have moved, or the link may be wrong. The rest of the site is still here.
+      </p>
+      <div class="mt-10">
+        <ButtonLink href="/">Back to home</ButtonLink>
+      </div>
+      <ul class="mt-14 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-6">
+        {
+          navigation.map((item) => (
+            <li>
+              <a href={item.href} class="text-sm text-muted transition-colors hover:text-fg">
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</BaseLayout>

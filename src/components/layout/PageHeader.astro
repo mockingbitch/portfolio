@@ -1,0 +1,27 @@
+---
+/** Title block for inner pages. */
+interface Props {
+  label: string;
+  title: string;
+  lead?: string;
+}
+
+const { label, title, lead } = Astro.props;
+---
+
+<header class="shell grid gap-x-8 gap-y-6 pb-16 pt-16 lg:grid-cols-12 lg:pb-24 lg:pt-24">
+  <div class="lg:col-span-3">
+    <p class="label rise">{label}</p>
+  </div>
+  <div class="lg:col-span-9">
+    <h1 class="rise max-w-4xl text-title" style="--rise-step: 1">{title}</h1>
+    {
+      lead && (
+        <p class="rise mt-6 max-w-2xl text-lead text-muted" style="--rise-step: 2">
+          {lead}
+        </p>
+      )
+    }
+    <slot />
+  </div>
+</header>

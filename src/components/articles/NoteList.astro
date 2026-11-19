@@ -1,0 +1,23 @@
+---
+import NoteRow from '@/components/articles/NoteRow.astro';
+import type { Note } from '@/lib/content';
+
+interface Props {
+  notes: Note[];
+  as?: 'h2' | 'h3';
+}
+
+const { notes, as = 'h2' } = Astro.props;
+---
+
+{
+  notes.length > 0 ? (
+    <div class="border-t border-line">
+      {notes.map((note) => <NoteRow note={note} as={as} />)}
+    </div>
+  ) : (
+    <p class="border-y border-line py-10 text-muted">
+      Nothing published here yet. New notes will appear as they are written.
+    </p>
+  )
+}

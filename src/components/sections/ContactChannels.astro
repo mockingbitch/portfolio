@@ -1,0 +1,33 @@
+---
+import ArrowUpRight from '@lucide/astro/icons/arrow-up-right';
+import { profile } from '@/data/profile';
+import { social } from '@/data/social';
+
+const channels = [
+  { label: 'Email', value: profile.email, href: `mailto:${profile.email}`, external: false },
+  ...social.map((item) => ({ label: item.label, value: item.handle, href: item.href, external: true })),
+];
+---
+
+<ul class="border-t border-line">
+  {
+    channels.map((channel) => (
+      <li>
+        <a
+          href={channel.href}
+          class="group flex items-baseline gap-6 border-b border-line py-5 transition-colors duration-150"
+          {...(channel.external ? { rel: 'me noopener' } : {})}
+        >
+          <span class="label w-24 shrink-0">{channel.label}</span>
+          <span class="min-w-0 truncate text-lg tracking-tight transition-colors duration-150 group-hover:text-accent">
+            {channel.value}
+          </span>
+          <ArrowUpRight
+            class="ml-auto size-4 shrink-0 self-center text-subtle transition duration-200 ease-out-quart group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+            aria-hidden="true"
+          />
+        </a>
+      </li>
+    ))
+  }
+</ul>

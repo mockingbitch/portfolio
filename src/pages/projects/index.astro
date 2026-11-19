@@ -1,0 +1,27 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHeader from '@/components/layout/PageHeader.astro';
+import ProjectRow from '@/components/projects/ProjectRow.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects();
+---
+
+<BaseLayout
+  title="Selected work"
+  description="Platforms, backend services and production infrastructure — a selection of engineering work."
+>
+  <PageHeader
+    label="Selected work"
+    title="Platforms, services and the infrastructure underneath them."
+    lead="A selection of systems across backend engineering, platform architecture and production operations. Each entry links to a longer case study."
+  />
+
+  <div class="shell pb-24 lg:pb-32">
+    <div class="grid gap-x-8 lg:grid-cols-12">
+      <div class="border-t border-line lg:col-span-9 lg:col-start-4">
+        {projects.map((project) => <ProjectRow project={project} as="h2" maxTags={8} />)}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

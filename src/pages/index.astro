@@ -1,0 +1,33 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/sections/Hero.astro';
+import About from '@/components/sections/About.astro';
+import Expertise from '@/components/sections/Expertise.astro';
+import SelectedWorks from '@/components/sections/SelectedWorks.astro';
+import Architecture from '@/components/sections/Architecture.astro';
+import LatestNotes from '@/components/sections/LatestNotes.astro';
+import Contact from '@/components/sections/Contact.astro';
+import { site } from '@/config/site';
+import { profile } from '@/data/profile';
+import { social } from '@/data/social';
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  url: site.url,
+  description: profile.statement,
+  sameAs: social.map((item) => item.href),
+};
+---
+
+<BaseLayout description={profile.statement}>
+  <script type="application/ld+json" slot="head" is:inline set:html={JSON.stringify(personSchema)} />
+  <Hero />
+  <About index="01" />
+  <Expertise index="02" />
+  <SelectedWorks index="03" />
+  <Architecture index="04" />
+  <LatestNotes index="05" />
+  <Contact index="06" />
+</BaseLayout>

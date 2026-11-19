@@ -1,0 +1,33 @@
+---
+number: 1
+title: Build the site static-first with Astro
+summary: Every page is generated at build time and served as plain files; JavaScript is added only where a component needs it.
+status: accepted
+date: 2026-11-19
+scope: This site
+tags: [Astro, Static generation, Performance]
+draft: false
+---
+
+## Context
+
+This site is a portfolio and a place for technical writing. Its content changes when a file is edited, not when a visitor arrives. Nothing on it needs a per-request decision: there are no accounts, no personalised views and no data that must be fresh to the second.
+
+The requirements that do matter are fast first load, strong accessibility and SEO, and content that stays easy to edit over years.
+
+## Decision
+
+Generate the whole site at build time with Astro and deploy the output as static files. Content lives in MDX files validated by typed content collections. Pages ship no client-side framework by default; interactive components are hydrated individually as islands.
+
+## Alternatives considered
+
+- **A single-page application.** It would ship a framework runtime to every visitor in order to render text that never changes, and make SEO depend on client rendering.
+- **A server-rendered application.** It adds a runtime to operate, monitor and secure for no benefit, since no page depends on the request.
+- **A hosted site builder or CMS.** Faster to start, but the content model, markup and performance budget would no longer be under version control.
+
+## Consequences
+
+- Hosting is a static file server behind a CDN. There is no application server to patch or scale.
+- Most pages load only a few small inline scripts, for the theme toggle and the mobile menu.
+- Anything that needs a server — receiving a form submission, for example — is not available and has to be designed around. See ADR-0002.
+- Publishing a change requires a build and a deploy rather than saving a record in a database. That is acceptable at this publishing frequency.

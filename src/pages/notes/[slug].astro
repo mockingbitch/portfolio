@@ -1,0 +1,50 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import { mdxComponents } from '@/components/mdx';
+import { getNoteCategory } from '@/data/noteCategories';
+import { getNotes, noteCategoryPath, type Note } from '@/lib/content';
+import { formatDate } from '@/lib/format';
+
+export async function getStaticPaths() {
+  const notes = await getNotes();
+  return notes.map((note) => ({ params: { slug: note.id }, props: { note } }));
+}
+
+interface Props {
+  note: Note;
+}
+
+const { note } = Astro.props;
+const { data } = note;
+const category = getNoteCategory(data.category);
+const { Content, headings } = await render(note);
+const published = !data.draft && data.pubDate ? data.pubDate : undefined;
+---
+
+<ArticleLayout
+  title={data.title}
+  description={data.description}
+  back={{ href: '/notes/', label: 'All notes' }}
+  headings={headings}
+  draft={data.draft}
+  draftKind="note"
+  publishedTime={published}
+>
+  <Fragment slot="meta">
+    <p class="label">
+      <a href={noteCategoryPath(category.slug)} class="text-accent hover:underline">{category.label}</a>
+    </p>
+    <p class="label">
+      {published ? <time datetime={published.toISOString()}>{formatDate(published)}</time> : 'Unpublished draft'}
+    </p>
+    {
+      published && data.updatedDate && (
+        <p class="label">
+          Updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time>
+        </p>
+      )
+    }
+  </Fragment>
+  <Content components={mdxComponents} />
+</ArticleLayout>

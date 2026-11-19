@@ -1,0 +1,28 @@
+---
+import Section from '@/components/layout/Section.astro';
+import ContactChannels from '@/components/sections/ContactChannels.astro';
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+
+interface Props {
+  index?: string;
+}
+---
+
+<Section
+  id="contact"
+  index={Astro.props.index}
+  label="Contact"
+  title="Have a system to design, untangle or scale? Let’s talk."
+>
+  <div class="grid gap-x-8 gap-y-10 md:grid-cols-9">
+    <div class="md:col-span-5">
+      <ContactChannels />
+    </div>
+    <div class="md:col-span-3 md:col-start-7">
+      <p class="text-muted">
+        The quickest route is email. For a longer brief, the contact page has a short form.
+      </p>
+      <ButtonLink href="/contact/" variant="secondary" class="mt-6">Write a message</ButtonLink>
+    </div>
+  </div>
+</Section>

@@ -1,0 +1,93 @@
+---
+/**
+ * Renders ```mermaid code blocks as themed SVG diagrams.
+ *
+ * Mermaid is only downloaded on pages that contain a diagram, and only once
+ * the first one approaches the viewport. Without JavaScript the diagram
+ * source stays visible as a code block.
+ */
+---
+
+<script>
+  const blocks = Array.from(document.querySelectorAll<HTMLElement>('pre > code.language-mermaid'));
+
+  if (blocks.length > 0) {
+    const diagrams = blocks.flatMap((code, index) => {
+      const pre = code.parentElement;
+      if (!pre) return [];
+      const figure = document.createElement('figure');
+      figure.className = 'diagram';
+      figure.setAttribute('role', 'img');
+      figure.setAttribute('aria-label', 'Architecture diagram');
+      return [{ id: `diagram-${index}`, source: code.textContent ?? '', pre, figure }];
+    });
+
+    const token = (name: string) =>
+      getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+    const render = async () => {
+      const { default: mermaid } = await import('mermaid');
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'strict',
+        theme: 'base',
+        fontFamily: getComputedStyle(document.body).fontFamily,
+        themeVariables: {
+          fontSize: '14px',
+          background: token('--surface'),
+          primaryColor: token('--bg'),
+          primaryTextColor: token('--fg'),
+          primaryBorderColor: token('--line-strong'),
+          secondaryColor: token('--surface'),
+          tertiaryColor: token('--surface'),
+          lineColor: token('--subtle'),
+          textColor: token('--muted'),
+          clusterBkg: token('--surface'),
+          clusterBorder: token('--line'),
+          edgeLabelBackground: token('--surface'),
+          noteBkgColor: token('--surface'),
+          noteTextColor: token('--fg'),
+          noteBorderColor: token('--line-strong'),
+          actorBkg: token('--bg'),
+          actorBorder: token('--line-strong'),
+          actorTextColor: token('--fg'),
+          signalColor: token('--subtle'),
+          signalTextColor: token('--muted'),
+          labelBoxBkgColor: token('--surface'),
+          labelBoxBorderColor: token('--line-strong'),
+          labelTextColor: token('--fg'),
+        },
+      });
+
+      for (const diagram of diagrams) {
+        try {
+          const { svg } = await mermaid.render(diagram.id, diagram.source);
+          diagram.figure.innerHTML = svg;
+          if (diagram.pre.isConnected) diagram.pre.replaceWith(diagram.figure);
+        } catch (error) {
+          // Leave the source block in place so the content is never lost.
+          console.error('Could not render diagram', error);
+        }
+      }
+    };
+
+    const first = diagrams[0]?.pre;
+    if (first) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            observer.disconnect();
+            void render();
+            // Re-render with the new palette when the theme changes.
+            new MutationObserver(() => void render()).observe(document.documentElement, {
+              attributes: true,
+              attributeFilter: ['data-theme'],
+            });
+          }
+        },
+        { rootMargin: '600px 0px' },
+      );
+      observer.observe(first);
+    }
+  }
+</script>

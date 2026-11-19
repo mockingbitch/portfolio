@@ -1,0 +1,103 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHeader from '@/components/layout/PageHeader.astro';
+import Section from '@/components/layout/Section.astro';
+import ButtonLink from '@/components/ui/ButtonLink.astro';
+import EntryRow from '@/components/ui/EntryRow.astro';
+import { diagrams } from '@/data/diagrams';
+import {
+  decisionLabel,
+  decisionPath,
+  getDecisions,
+  getSystemDesignStudies,
+  systemDesignPath,
+} from '@/lib/content';
+import { formatDate, formatIndex } from '@/lib/format';
+
+const [studies, decisions] = await Promise.all([getSystemDesignStudies(), getDecisions()]);
+const emptyClass = 'border-y border-line py-10 text-muted';
+---
+
+<BaseLayout
+  title="Architecture"
+  description="Interactive architecture diagrams, system design case studies and engineering decision records."
+>
+  <PageHeader
+    label="Architecture"
+    title="How systems are shaped, and why they are shaped that way."
+    lead="Diagrams you can explore, design problems worked through from requirements to trade-offs, and the decision records behind the choices."
+  />
+
+  <Section
+    id="playground"
+    index="01"
+    label="Playground"
+    title="Interactive diagrams: select a component, or follow a request through the system."
+  >
+    <ol class="border-t border-line">
+      {
+        diagrams.map((diagram, index) => (
+          <li class="grid gap-x-8 gap-y-2 border-b border-line py-6 md:grid-cols-9">
+            <span class="label pt-1 md:col-span-1">{formatIndex(index + 1)}</span>
+            <h3 class="text-lg leading-snug tracking-tight md:col-span-3">{diagram.title}</h3>
+            <p class="text-[0.9375rem] text-muted md:col-span-5">{diagram.summary}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <ButtonLink href="/architecture/playground/" class="mt-10">Open the playground</ButtonLink>
+  </Section>
+
+  <Section
+    id="system-design"
+    index="02"
+    label="System design"
+    title="Design problems, worked from requirements through to failure modes."
+  >
+    {
+      studies.length > 0 ? (
+        <div class="border-t border-line">
+          {studies.map((study) => (
+            <EntryRow
+              href={systemDesignPath(study)}
+              title={study.data.title}
+              description={study.data.summary}
+              marker={!study.data.draft && study.data.pubDate ? formatDate(study.data.pubDate) : 'Unpublished'}
+              meta={study.data.topics.join(' · ')}
+              draft={study.data.draft}
+            />
+          ))}
+        </div>
+      ) : (
+        <p class={emptyClass}>No studies published yet.</p>
+      )
+    }
+  </Section>
+
+  <Section
+    id="decisions"
+    index="03"
+    label="Decision records"
+    title="Short records of what was decided, what else was considered, and what it cost."
+  >
+    {
+      decisions.length > 0 ? (
+        <div class="border-t border-line">
+          {decisions.map((decision) => (
+            <EntryRow
+              href={decisionPath(decision)}
+              title={decision.data.title}
+              description={decision.data.summary}
+              marker={decisionLabel(decision)}
+              meta={`${decision.data.status} · ${decision.data.scope}`}
+              draft={decision.data.draft}
+              draftLabel="Template"
+            />
+          ))}
+        </div>
+      ) : (
+        <p class={emptyClass}>No decision records published yet.</p>
+      )
+    }
+  </Section>
+</BaseLayout>

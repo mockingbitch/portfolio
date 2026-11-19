@@ -1,0 +1,39 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import ArrowRight from '@lucide/astro/icons/arrow-right';
+import ArrowUpRight from '@lucide/astro/icons/arrow-up-right';
+
+interface Props extends HTMLAttributes<'a'> {
+  href: string;
+  variant?: 'primary' | 'secondary';
+  /** Hide the trailing arrow. */
+  plain?: boolean;
+}
+
+const { href, variant = 'primary', plain = false, class: className, ...rest } = Astro.props;
+const external = /^https?:\/\//.test(href);
+const Icon = external ? ArrowUpRight : ArrowRight;
+---
+
+<a
+  href={href}
+  class:list={[
+    'group inline-flex h-11 items-center gap-2.5 rounded-[2px] px-5 text-sm font-medium transition-colors duration-150',
+    variant === 'primary'
+      ? 'bg-fg text-bg hover:bg-accent hover:text-accent-contrast'
+      : 'border border-line-strong text-fg hover:border-fg',
+    className,
+  ]}
+  {...(external ? { rel: 'noopener' } : {})}
+  {...rest}
+>
+  <slot />
+  {
+    !plain && (
+      <Icon
+        class="size-4 transition-transform duration-200 ease-out-quart group-hover:translate-x-0.5"
+        aria-hidden="true"
+      />
+    )
+  }
+</a>

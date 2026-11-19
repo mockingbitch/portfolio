@@ -1,0 +1,18 @@
+---
+/**
+ * Marks content that still has to be written. Available in every MDX file
+ * as <Placeholder> — delete it once the real text is in place.
+ */
+interface Props {
+  label?: string;
+}
+
+const { label = 'To be written' } = Astro.props;
+---
+
+<div class="not-prose border-l border-dashed border-line-strong py-1 pl-5">
+  <p class="label">{label}</p>
+  <div class="mt-2 text-[0.9375rem] leading-relaxed text-subtle">
+    <slot />
+  </div>
+</div>

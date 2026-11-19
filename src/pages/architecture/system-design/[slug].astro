@@ -1,0 +1,46 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import Tag from '@/components/ui/Tag.astro';
+import { mdxComponents } from '@/components/mdx';
+import { getSystemDesignStudies, type SystemDesignStudy } from '@/lib/content';
+import { formatDate } from '@/lib/format';
+
+export async function getStaticPaths() {
+  const studies = await getSystemDesignStudies();
+  return studies.map((study) => ({ params: { slug: study.id }, props: { study } }));
+}
+
+interface Props {
+  study: SystemDesignStudy;
+}
+
+const { study } = Astro.props;
+const { data } = study;
+const { Content, headings } = await render(study);
+const published = !data.draft && data.pubDate ? data.pubDate : undefined;
+---
+
+<ArticleLayout
+  title={data.title}
+  description={data.summary}
+  back={{ href: '/architecture/#system-design', label: 'Architecture' }}
+  headings={headings}
+  draft={data.draft}
+  draftKind="system design study"
+  publishedTime={published}
+>
+  <Fragment slot="meta">
+    <p class="label"><span class="text-accent">System design</span></p>
+    <p class="label">
+      {published ? <time datetime={published.toISOString()}>{formatDate(published)}</time> : 'Unpublished draft'}
+    </p>
+  </Fragment>
+  <div slot="aside">
+    <h2 class="label">Topics</h2>
+    <ul class="mt-4 flex flex-wrap gap-1.5">
+      {data.topics.map((topic) => <li><Tag>{topic}</Tag></li>)}
+    </ul>
+  </div>
+  <Content components={mdxComponents} />
+</ArticleLayout>

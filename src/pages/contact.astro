@@ -1,0 +1,43 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHeader from '@/components/layout/PageHeader.astro';
+import ContactChannels from '@/components/sections/ContactChannels.astro';
+import ContactForm from '@/components/ui/ContactForm.tsx';
+import { profile } from '@/data/profile';
+---
+
+<BaseLayout title="Contact" description="Get in touch about backend, platform and architecture work.">
+  <PageHeader
+    label="Contact"
+    title="Let’s talk about the system you are building."
+    lead="Architecture questions, platform work, or a problem that needs a second pair of eyes — email is the most direct way to reach me."
+  />
+
+  <div class="shell pb-24 lg:pb-32">
+    <div class="grid gap-x-8 gap-y-20 lg:grid-cols-12">
+      <section aria-labelledby="channels-heading" class="lg:col-span-9 lg:col-start-4">
+        <h2 id="channels-heading" class="label mb-5">Direct</h2>
+        <ContactChannels />
+        {
+          profile.availability.enabled && (
+            <p class="label mt-6 flex items-center gap-2.5">
+              <span class="size-1.5 rounded-full bg-accent" aria-hidden="true" />
+              {profile.availability.label}
+            </p>
+          )
+        }
+      </section>
+
+      <section aria-labelledby="form-heading" class="lg:col-span-6 lg:col-start-4">
+        <h2 id="form-heading" class="label mb-8">Write a message</h2>
+        <ContactForm client:visible email={profile.email} />
+        <noscript>
+          <p class="mt-4 text-sm text-muted">
+            The form needs JavaScript. You can always email
+            <a class="link" href={`mailto:${profile.email}`}>{profile.email}</a> directly.
+          </p>
+        </noscript>
+      </section>
+    </div>
+  </div>
+</BaseLayout>

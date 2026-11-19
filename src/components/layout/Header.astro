@@ -1,0 +1,124 @@
+---
+import Menu from '@lucide/astro/icons/menu';
+import X from '@lucide/astro/icons/x';
+import { navigation } from '@/data/navigation';
+import { profile } from '@/data/profile';
+import ThemeToggle from '@/components/navigation/ThemeToggle.astro';
+
+const { pathname } = Astro.url;
+const isActive = (href: string) => pathname === href || pathname.startsWith(href);
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md [view-transition-name:site-header]"
+  data-site-header
+>
+  <div class="shell flex h-16 items-center justify-between gap-6">
+    <a
+      href="/"
+      class="flex items-center gap-2.5 text-[0.9375rem] font-medium tracking-tight text-fg"
+      aria-label={`${profile.name} — home`}
+    >
+      <span class="size-2 bg-accent" aria-hidden="true"></span>
+      {profile.wordmark}
+    </a>
+
+    <div class="flex items-center gap-1 sm:gap-2">
+      <nav aria-label="Primary" class="hidden md:block">
+        <ul class="flex items-center">
+          {
+            navigation.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    class:list={[
+                      'relative block px-3.5 py-2 text-sm transition-colors duration-150 hover:text-fg',
+                      active
+                        ? 'text-fg after:absolute after:inset-x-3.5 after:-bottom-[0.8125rem] after:h-px after:bg-accent'
+                        : 'text-muted',
+                    ]}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+
+      <ThemeToggle />
+
+      <button
+        type="button"
+        class="grid size-10 place-items-center text-muted transition-colors hover:text-fg md:hidden"
+        aria-controls="mobile-menu"
+        aria-expanded="false"
+        aria-label="Open menu"
+        data-menu-toggle
+      >
+        <Menu class="size-5 [[aria-expanded=true]>&]:hidden" aria-hidden="true" />
+        <X class="hidden size-5 [[aria-expanded=true]>&]:block" aria-hidden="true" />
+      </button>
+    </div>
+  </div>
+
+  <nav id="mobile-menu" aria-label="Mobile" class="border-t border-line md:hidden" hidden>
+    <ul class="shell py-3">
+      {
+        navigation.map((item, index) => {
+          const active = isActive(item.href);
+          return (
+            <li class="border-b border-line last:border-0">
+              <a
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                class:list={[
+                  'flex items-baseline gap-4 py-4 text-2xl tracking-tight',
+                  active ? 'text-fg' : 'text-muted',
+                ]}
+              >
+                <span class="label w-6">{String(index + 1).padStart(2, '0')}</span>
+                {item.label}
+                {active && <span class="ml-auto size-1.5 self-center bg-accent" aria-hidden="true" />}
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-site-header]');
+  const toggle = header?.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = header?.querySelector<HTMLElement>('#mobile-menu');
+
+  if (toggle && menu) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      menu.hidden = !open;
+    };
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    // Close when the viewport grows into the desktop layout.
+    window.matchMedia('(min-width: 48rem)').addEventListener('change', (event) => {
+      if (event.matches) setOpen(false);
+    });
+  }
+</script>

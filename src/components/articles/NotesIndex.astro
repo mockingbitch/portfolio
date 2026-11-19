@@ -1,0 +1,33 @@
+---
+import PageHeader from '@/components/layout/PageHeader.astro';
+import CategoryFilter from '@/components/articles/CategoryFilter.astro';
+import NoteList from '@/components/articles/NoteList.astro';
+import ArrowLink from '@/components/ui/ArrowLink.astro';
+import type { Note } from '@/lib/content';
+
+/** Shared body of the notes index and the per-category listings. */
+interface Props {
+  notes: Note[];
+  title: string;
+  lead: string;
+  activeCategory?: string;
+}
+
+const { notes, title, lead, activeCategory } = Astro.props;
+---
+
+<PageHeader label="Technical notes" title={title} lead={lead} />
+
+<div class="shell pb-24 lg:pb-32">
+  <div class="grid gap-x-8 lg:grid-cols-12">
+    <div class="lg:col-span-9 lg:col-start-4">
+      <CategoryFilter active={activeCategory} />
+      <div class="mt-10">
+        <NoteList notes={notes} as="h2" />
+      </div>
+      <div class="mt-10">
+        <ArrowLink href="/rss.xml">Subscribe via RSS</ArrowLink>
+      </div>
+    </div>
+  </div>
+</div>

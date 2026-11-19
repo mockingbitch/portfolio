@@ -1,0 +1,112 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHeader from '@/components/layout/PageHeader.astro';
+import Section from '@/components/layout/Section.astro';
+import Principles from '@/components/sections/Principles.astro';
+import Expertise from '@/components/sections/Expertise.astro';
+import Timeline from '@/components/sections/Timeline.astro';
+import OpenSource from '@/components/sections/OpenSource.astro';
+import Contact from '@/components/sections/Contact.astro';
+import { philosophy } from '@/data/philosophy';
+import { profile } from '@/data/profile';
+import { proficiencyLevels, technologies } from '@/data/technologies';
+import { timeline } from '@/data/timeline';
+import { openSource } from '@/data/openSource';
+import { withoutHiddenPlaceholders } from '@/lib/content';
+import { formatIndex } from '@/lib/format';
+
+const timelineEntries = withoutHiddenPlaceholders(timeline);
+const openSourceEntries = withoutHiddenPlaceholders(openSource);
+
+// Optional sections are numbered in the order they actually appear.
+let section = 3;
+const nextIndex = () => formatIndex(++section);
+---
+
+<BaseLayout
+  title="About"
+  description="Engineering philosophy, areas of expertise, technologies, technical timeline and open-source work."
+>
+  <PageHeader label="About" title={philosophy.lead}>
+    <div class="rise mt-10 grid max-w-4xl gap-x-8 gap-y-5 text-muted md:grid-cols-2" style="--rise-step: 2">
+      {philosophy.body.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+    {profile.location && <p class="label mt-10">{profile.location}</p>}
+  </PageHeader>
+
+  <Section id="principles" index="01" label="Principles" title="Five ideas that shape most of my engineering decisions.">
+    <Principles />
+  </Section>
+
+  <Expertise index="02" />
+
+  <Section
+    id="toolbox"
+    index="03"
+    label="Toolbox"
+    title="The technologies I work with, grouped by how deeply I know them."
+  >
+    <dl class="mb-10 grid gap-x-8 gap-y-4 sm:grid-cols-3">
+      {
+        proficiencyLevels.map((level) => (
+          <div>
+            <dt class="label text-fg">{level.label}</dt>
+            <dd class="mt-1.5 text-sm text-muted">{level.description}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[40rem] border-collapse text-left">
+        <caption class="sr-only">Technologies by area and proficiency</caption>
+        <thead>
+          <tr class="border-y border-line">
+            <th scope="col" class="label w-1/4 py-3 font-normal">Area</th>
+            {
+              proficiencyLevels.map((level) => (
+                <th scope="col" class="label w-1/4 py-3 font-normal">
+                  {level.label}
+                </th>
+              ))
+            }
+          </tr>
+        </thead>
+        <tbody>
+          {
+            technologies.map((group) => (
+              <tr class="border-b border-line align-top">
+                <th scope="row" class="py-5 pr-6 text-[0.9375rem] font-medium tracking-tight">
+                  {group.title}
+                </th>
+                {proficiencyLevels.map((level) => {
+                  const items = group.items.filter((item) => item.level === level.id);
+                  return (
+                    <td class="py-5 pr-6 font-mono text-[0.8125rem] leading-7 text-muted">
+                      {items.length > 0 ? (
+                        <ul>
+                          {items.map((item) => (
+                            <li>{item.name}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span class="text-subtle" aria-label="None">
+                          —
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </Section>
+
+  {timelineEntries.length > 0 && <Timeline index={nextIndex()} entries={timelineEntries} />}
+  {openSourceEntries.length > 0 && <OpenSource index={nextIndex()} entries={openSourceEntries} />}
+
+  <Contact index={nextIndex()} />
+</BaseLayout>

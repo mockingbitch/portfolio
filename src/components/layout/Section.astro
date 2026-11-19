@@ -1,0 +1,41 @@
+---
+/**
+ * Editorial section: a marker column on the left, content on the right.
+ * Used for every major block on the home and about pages.
+ */
+interface Props {
+  id: string;
+  /** Two-digit marker, e.g. "01". */
+  index?: string;
+  label: string;
+  title?: string;
+  /** Heading level for the title. */
+  as?: 'h2' | 'h3';
+}
+
+const { id, index, label, title, as: Heading = 'h2' } = Astro.props;
+const headingId = `${id}-heading`;
+---
+
+<section id={id} aria-labelledby={headingId} class="border-t border-line">
+  <div class="shell grid gap-x-8 gap-y-8 py-20 lg:grid-cols-12 lg:py-28">
+    <div class="lg:col-span-3">
+      <p class="label flex gap-3 lg:sticky lg:top-24">
+        {index && <span class="text-accent">{index}</span>}
+        <span id={title ? undefined : headingId}>{label}</span>
+      </p>
+    </div>
+    <div class="lg:col-span-9">
+      {
+        title && (
+          <Heading id={headingId} class="max-w-3xl text-heading">
+            {title}
+          </Heading>
+        )
+      }
+      <div class:list={[title && 'mt-10 lg:mt-14']}>
+        <slot />
+      </div>
+    </div>
+  </div>
+</section>

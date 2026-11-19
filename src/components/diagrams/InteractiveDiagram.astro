@@ -1,0 +1,20 @@
+---
+import DiagramExplorer from '@/components/diagrams/DiagramExplorer.tsx';
+import { getDiagram } from '@/data/diagrams';
+
+/**
+ * Embeds one interactive diagram in an article. Available in every MDX file:
+ *   <InteractiveDiagram id="production-infrastructure" />
+ * The id refers to an entry in src/data/diagrams.ts.
+ */
+interface Props {
+  id: string;
+}
+
+const diagram = getDiagram(Astro.props.id);
+---
+
+<!-- Wider than the text column on large screens, so diagrams stay legible. -->
+<div class="xl:w-[calc(100%+9rem)]">
+  <DiagramExplorer client:visible diagrams={[diagram]} compact />
+</div>

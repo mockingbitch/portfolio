@@ -1,0 +1,43 @@
+---
+import Section from '@/components/layout/Section.astro';
+import DraftBadge from '@/components/ui/DraftBadge.astro';
+import Tag from '@/components/ui/Tag.astro';
+import type { TimelineEntry } from '@/data/timeline';
+
+interface Props {
+  index?: string;
+  entries: TimelineEntry[];
+}
+
+const { index, entries } = Astro.props;
+---
+
+<Section id="timeline" index={index} label="Timeline" title="The milestones that changed how I build software.">
+  <ol class="border-t border-line">
+    {
+      entries.map((entry) => (
+        <li class="grid gap-x-8 gap-y-2 border-b border-line py-7 md:grid-cols-9">
+          <p class="label pt-1.5 md:col-span-2">{entry.period}</p>
+          <div class="md:col-span-7">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <h3 class="text-xl leading-snug tracking-tight">{entry.title}</h3>
+              {entry.placeholder && <DraftBadge label="Placeholder" />}
+            </div>
+            <p class:list={['mt-2 max-w-2xl text-[0.9375rem]', entry.placeholder ? 'text-subtle' : 'text-muted']}>
+              {entry.description}
+            </p>
+            {entry.tags && entry.tags.length > 0 && (
+              <ul class="mt-5 flex flex-wrap gap-1.5">
+                {entry.tags.map((tag) => (
+                  <li>
+                    <Tag>{tag}</Tag>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</Section>

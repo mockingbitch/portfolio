@@ -1,0 +1,49 @@
+---
+title: Service-to-service authentication
+summary: Template — designing how internal services prove their identity to each other and how a user’s authority is carried between them.
+topics: [mTLS, OAuth2 / OIDC, PKI, Authorization]
+draft: true
+---
+
+## Requirements
+
+<Placeholder>
+  State what the design must achieve. Prompts: which services call which; whether calls are made on
+  behalf of a user; what must be auditable; what happens when the identity system itself is down.
+</Placeholder>
+
+## Constraints
+
+<Placeholder>
+  List the limits the design works within: number of services, deployment environments, latency budget
+  per hop, team size, and existing systems that cannot change.
+</Placeholder>
+
+## High-level design
+
+<InteractiveDiagram id="secure-service-platform" />
+
+<Placeholder label="Reference diagram — replace or adapt">
+  The diagram above is a generic reference model from `src/data/diagrams.ts`. Adapt it to the design you
+  are describing, then explain each component’s responsibility here.
+</Placeholder>
+
+## Deep dives
+
+<Placeholder>
+  Pick the two or three hardest parts and go deep. Prompts: certificate issuance and rotation; token
+  propagation versus token exchange; where authorization decisions are made and cached.
+</Placeholder>
+
+## Failure modes
+
+<Placeholder>
+  Walk through what breaks and how the system behaves: an expired certificate, an unreachable identity
+  provider, a compromised service credential, clock skew.
+</Placeholder>
+
+## Trade-offs
+
+<Placeholder>
+  State what this design costs and which alternative you would choose under different constraints.
+</Placeholder>

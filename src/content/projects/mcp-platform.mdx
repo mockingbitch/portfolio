@@ -1,0 +1,73 @@
+---
+title: MCP Platform
+summary: Multi-agent orchestration platform built around Go, secure service communication, identity management, and distributed tool execution.
+order: 1
+# role: e.g. "Lead backend engineer"
+# status: e.g. "In development"
+# period: e.g. "2025 — present"
+focus:
+  - Go
+  - MCP
+  - Agent orchestration
+  - OAuth2 / OIDC
+  - mTLS
+  - PKI
+  - Authorization
+  - Distributed systems
+draft: true
+---
+
+## Problem
+
+<Placeholder>
+  Describe the problem this platform exists to solve. Who needed agents to call tools across services, what
+  was missing or unsafe before, and which constraints (security, tenancy, latency, team size) shaped the answer.
+</Placeholder>
+
+## Technical challenges
+
+<Placeholder>
+  List the hard parts in concrete terms. Prompts: establishing identity for agents and tools; authorising a
+  tool call on behalf of a user; securing service-to-service traffic; executing tools that live in different
+  processes or networks; handling partial failure and retries.
+</Placeholder>
+
+## Architecture
+
+```mermaid
+flowchart LR
+  client[Clients and agents] --> gateway[Orchestration gateway]
+  gateway --> idp[Identity provider<br/>OAuth2 / OIDC]
+  gateway --> authz[Authorization<br/>policy decisions]
+  gateway -- mTLS --> toolA[Tool server]
+  gateway -- mTLS --> toolB[Tool server]
+  pki[Internal PKI] -. issues certificates .-> gateway
+  pki -. issues certificates .-> toolA
+  pki -. issues certificates .-> toolB
+```
+
+<Placeholder label="Illustrative sketch">
+  This diagram is a starting point inferred from the project summary, not a record of the real topology.
+  Replace it with the actual components and trust boundaries.
+</Placeholder>
+
+## Architecture decisions
+
+<Placeholder>
+  Record the decisions that mattered and the alternatives you rejected. A useful shape per decision:
+  context, options considered, the choice, and the trade-off you accepted.
+</Placeholder>
+
+## Implementation
+
+<Placeholder>
+  Explain how it is built: service layout, how tools are registered and discovered, how tokens and
+  certificates are issued and rotated, and what the request lifecycle looks like end to end.
+</Placeholder>
+
+## Outcomes
+
+<Placeholder>
+  State what the platform made possible. Only include results you can stand behind — leave metrics out
+  until they can be sourced.
+</Placeholder>

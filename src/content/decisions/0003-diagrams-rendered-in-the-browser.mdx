@@ -1,0 +1,34 @@
+---
+number: 3
+title: Render diagrams in the browser, on demand
+summary: Diagram code is downloaded only on pages that contain a diagram; static diagrams use Mermaid and interactive ones are data-driven components.
+status: accepted
+date: 2026-11-19
+scope: This site
+tags: [Diagrams, Performance, Mermaid, React]
+draft: false
+---
+
+## Context
+
+Architecture writing needs diagrams. Two kinds are useful here: simple diagrams written inline in an article, and richer ones a reader can explore — selecting a component, or stepping through a request.
+
+Diagram libraries are large. Loading one on every page would undo the benefit of a static site (ADR-0001). Diagrams also have to follow the light and dark themes.
+
+## Decision
+
+- **Inline diagrams** are written as fenced `mermaid` code blocks. A small script finds them and loads Mermaid only when the first diagram approaches the viewport, then renders it using the site’s colour tokens. Changing theme re-renders the diagram.
+- **Interactive diagrams** are described as data — nodes on a grid, edges, zones and ordered flows — and drawn by one React component hydrated as an island. The component styles the SVG with the same tokens, so theming needs no extra code.
+
+## Alternatives considered
+
+- **Rendering Mermaid at build time.** It removes the client-side cost entirely, but requires a headless browser in the build, and a single pre-rendered SVG cannot follow a theme switch without rendering every diagram twice.
+- **Hand-drawn SVG files.** Full control over appearance, but every change means editing artwork, and nothing about them is interactive.
+- **A general-purpose graph library for the interactive diagrams.** More layout power than needed, at a much larger download, for diagrams of about a dozen nodes.
+
+## Consequences
+
+- Pages without diagrams pay nothing for them.
+- The first diagram on a page appears after a short delay while the library loads.
+- Without JavaScript, a Mermaid block remains visible as its source text, and the playground falls back to a written list of components.
+- Interactive diagrams use a fixed grid rather than automatic layout. Positions are chosen by hand, which keeps diagrams deliberate but does not scale to very large graphs.

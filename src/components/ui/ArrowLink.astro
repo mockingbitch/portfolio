@@ -1,0 +1,32 @@
+---
+import ArrowLeft from '@lucide/astro/icons/arrow-left';
+import ArrowRight from '@lucide/astro/icons/arrow-right';
+import ArrowUpRight from '@lucide/astro/icons/arrow-up-right';
+
+/** Quiet text link with a directional arrow. */
+interface Props {
+  href: string;
+  direction?: 'forward' | 'back';
+}
+
+const { href, direction = 'forward' } = Astro.props;
+const external = /^https?:\/\//.test(href);
+const iconClass = 'size-4 transition-transform duration-200 ease-out-quart';
+---
+
+<a
+  href={href}
+  class="group inline-flex items-center gap-2 text-sm text-muted transition-colors duration-150 hover:text-fg"
+  {...(external ? { rel: 'noopener' } : {})}
+>
+  {direction === 'back' && <ArrowLeft class:list={[iconClass, 'group-hover:-translate-x-0.5']} aria-hidden="true" />}
+  <slot />
+  {
+    direction === 'forward' &&
+      (external ? (
+        <ArrowUpRight class:list={[iconClass, 'group-hover:-translate-y-0.5 group-hover:translate-x-0.5']} aria-hidden="true" />
+      ) : (
+        <ArrowRight class:list={[iconClass, 'group-hover:translate-x-0.5']} aria-hidden="true" />
+      ))
+  }
+</a>

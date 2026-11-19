@@ -1,0 +1,15 @@
+---
+/** Banner shown at the top of unpublished case studies and notes. */
+interface Props {
+  kind: 'case study' | 'note' | 'system design study' | 'decision record';
+}
+
+const { kind } = Astro.props;
+---
+
+<aside class="border border-dashed border-line-strong px-5 py-4 text-sm text-muted" aria-label="Draft notice">
+  <p>
+    <span class="label mr-3 text-fg">Draft</span>
+    This {kind} is an unpublished outline. Sections marked “to be written” are placeholders, not finished content.
+  </p>
+</aside>
