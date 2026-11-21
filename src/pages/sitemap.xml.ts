@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { site } from '@/config/site';
+import { withBase } from '@/lib/url';
 import { insightCategories } from '@/data/insightCategories';
 import {
   deepDivePath,
@@ -41,7 +42,7 @@ export const GET: APIRoute = async ({ site: origin }) => {
   const published = <T extends { data: { draft: boolean } }>(entries: T[]) => entries.filter((entry) => !entry.data.draft);
 
   const entries: { path: string; lastmod?: Date }[] = [
-    ...staticPaths.map((path) => ({ path })),
+    ...staticPaths.map((path) => ({ path: withBase(path) })),
     ...projects.filter((entry) => entry.data.status === 'published').map((entry) => ({ path: projectPath(entry) })),
     ...published(studies).map((entry) => ({ path: systemDesignPath(entry), lastmod: entry.data.pubDate })),
     ...published(deepDives).map((entry) => ({

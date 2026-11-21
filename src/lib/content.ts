@@ -1,5 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { site } from '@/config/site';
+import { withBase } from '@/lib/url';
 
 export type Project = CollectionEntry<'projects'>;
 export type SystemDesignStudy = CollectionEntry<'systemDesign'>;
@@ -47,11 +48,11 @@ export async function getPublishedInsights(): Promise<Insight[]> {
   return (await getInsights()).filter((insight) => !insight.data.draft);
 }
 
-export const projectPath = (project: Project) => `/projects/${project.id}/`;
-export const systemDesignPath = (study: SystemDesignStudy) => `/architecture/system-design/${study.id}/`;
-export const deepDivePath = (deepDive: DeepDive) => `/deep-dives/${deepDive.id}/`;
-export const insightPath = (insight: Insight) => `/insights/${insight.id}/`;
-export const insightCategoryPath = (slug: string) => `/insights/category/${slug}/`;
+export const projectPath = (project: Project) => withBase(`/projects/${project.id}/`);
+export const systemDesignPath = (study: SystemDesignStudy) => withBase(`/architecture/system-design/${study.id}/`);
+export const deepDivePath = (deepDive: DeepDive) => withBase(`/deep-dives/${deepDive.id}/`);
+export const insightPath = (insight: Insight) => withBase(`/insights/${insight.id}/`);
+export const insightCategoryPath = (slug: string) => withBase(`/insights/category/${slug}/`);
 
 /** The published date of an entry, or undefined while it is a draft. */
 export const publishedDate = (data: { draft: boolean; pubDate?: Date }) =>

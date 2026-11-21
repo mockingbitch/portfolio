@@ -1,4 +1,5 @@
 ---
+import { absoluteUrl } from '@/lib/url';
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ArrowLink from '@/components/ui/ArrowLink.astro';
@@ -35,7 +36,7 @@ const articleSchema = publishedTime && {
   headline: title,
   description,
   datePublished: publishedTime.toISOString(),
-  author: { '@type': 'Person', name: profile.name, url: site.url },
+  author: { '@type': 'Person', name: profile.name, url: absoluteUrl('/', site.url) },
   mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href,
 };
 ---

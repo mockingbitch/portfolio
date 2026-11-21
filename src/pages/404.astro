@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import { navigation } from '@/data/navigation';
@@ -19,7 +20,7 @@ import { navigation } from '@/data/navigation';
         {
           navigation.map((item) => (
             <li>
-              <a href={item.href} class="text-sm text-muted transition-colors hover:text-fg">
+              <a href={withBase(item.href)} class="text-sm text-muted transition-colors hover:text-fg">
                 {item.label}
               </a>
             </li>

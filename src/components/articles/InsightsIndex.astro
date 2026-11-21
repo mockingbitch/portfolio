@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import PageHeader from '@/components/layout/PageHeader.astro';
 import EntryList from '@/components/articles/EntryList.astro';
 import InsightRow from '@/components/articles/InsightRow.astro';
@@ -17,7 +18,7 @@ interface Props {
 
 const { insights, title, lead, activeCategory } = Astro.props;
 const categories = [
-  { label: 'All', href: '/insights/', current: activeCategory === undefined },
+  { label: 'All', href: withBase('/insights/'), current: activeCategory === undefined },
   ...insightCategories.map((category) => ({
     label: category.label,
     href: insightCategoryPath(category.slug),

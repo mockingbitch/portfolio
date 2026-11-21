@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import Menu from '@lucide/astro/icons/menu';
 import Search from '@lucide/astro/icons/search';
 import X from '@lucide/astro/icons/x';
@@ -7,7 +8,8 @@ import { profile } from '@/data/profile';
 import ThemeToggle from '@/components/navigation/ThemeToggle.astro';
 
 const { pathname } = Astro.url;
-const isActive = (href: string) => pathname === href || pathname.startsWith(href);
+// `pathname` includes the base path, so compare against base-prefixed hrefs.
+const isActive = (href: string) => pathname.startsWith(withBase(href));
 ---
 
 <header
@@ -16,7 +18,7 @@ const isActive = (href: string) => pathname === href || pathname.startsWith(href
 >
   <div class="shell flex h-16 items-center justify-between gap-6">
     <a
-      href="/"
+      href={withBase('/')}
       class="flex items-center gap-2.5 text-[0.9375rem] font-medium tracking-tight text-fg"
       aria-label={`${profile.name} — home`}
     >
@@ -33,7 +35,7 @@ const isActive = (href: string) => pathname === href || pathname.startsWith(href
               return (
                 <li>
                   <a
-                    href={item.href}
+                    href={withBase(item.href)}
                     aria-current={active ? 'page' : undefined}
                     class:list={[
                       'relative block px-3 py-2 text-sm transition-colors duration-150 hover:text-fg',
@@ -52,10 +54,10 @@ const isActive = (href: string) => pathname === href || pathname.startsWith(href
       </nav>
 
       <a
-        href="/search/"
+        href={withBase('/search/')}
         class="grid size-10 place-items-center text-muted transition-colors hover:text-fg"
         aria-label="Search"
-        aria-current={pathname === '/search/' ? 'page' : undefined}
+        aria-current={pathname === withBase('/search/') ? 'page' : undefined}
       >
         <Search class="size-[1.125rem]" aria-hidden="true" />
       </a>
@@ -86,7 +88,7 @@ const isActive = (href: string) => pathname === href || pathname.startsWith(href
           return (
             <li class="border-b border-line last:border-0">
               <a
-                href={item.href}
+                href={withBase(item.href)}
                 aria-current={active ? 'page' : undefined}
                 class:list={[
                   'flex items-baseline gap-4 py-3.5 text-xl tracking-tight',

@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import type { ComponentProps } from 'astro/types';
 import { Font } from 'astro:assets';
 import '@/styles/global.css';
@@ -32,13 +33,13 @@ type Props = ComponentProps<typeof Seo>;
     <Font cssVariable="--font-geist" preload />
     <Font cssVariable="--font-geist-mono" />
     <Seo {...Astro.props} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="sitemap" href="/sitemap.xml" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="sitemap" href={withBase('/sitemap.xml')} />
     <link
       rel="alternate"
       type="application/rss+xml"
       title={`${profile.name} — Insights`}
-      href="/rss.xml"
+      href={withBase('/rss.xml')}
     />
     <slot name="head" />
   </head>

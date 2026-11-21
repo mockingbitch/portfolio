@@ -44,7 +44,7 @@ import PageHeader from '@/components/layout/PageHeader.astro';
   const results = document.querySelector<HTMLOListElement>('[data-search-results]');
 
   let index: Promise<SearchEntry[]> | undefined;
-  const load = () => (index ??= fetch('/search.json').then((response) => response.json() as Promise<SearchEntry[]>));
+  const load = () => (index ??= fetch(`${import.meta.env.BASE_URL.replace(/\/$/, '')}/search.json`).then((response) => response.json() as Promise<SearchEntry[]>));
 
   const element = (tag: string, className: string, text?: string) => {
     const node = document.createElement(tag);

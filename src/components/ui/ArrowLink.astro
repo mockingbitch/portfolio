@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import ArrowLeft from '@lucide/astro/icons/arrow-left';
 import ArrowRight from '@lucide/astro/icons/arrow-right';
 import ArrowUpRight from '@lucide/astro/icons/arrow-up-right';
@@ -11,11 +12,12 @@ interface Props {
 
 const { href, direction = 'forward' } = Astro.props;
 const external = /^https?:\/\//.test(href);
+const target = withBase(href);
 const iconClass = 'size-4 transition-transform duration-200 ease-out-quart';
 ---
 
 <a
-  href={href}
+  href={target}
   class="group inline-flex items-center gap-2 text-sm text-muted transition-colors duration-150 hover:text-fg"
   {...(external ? { rel: 'noopener' } : {})}
 >

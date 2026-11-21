@@ -46,7 +46,7 @@ The decision records section was removed from the site. Its source files are kep
 
 The site ships with placeholders instead of invented personal details. Replace them first:
 
-1. **`src/config/site.ts`** — set `url` to your production origin.
+1. **`src/config/site.ts`** — `url` and `base` are set for GitHub Pages; change both if the site moves.
 2. **`src/data/profile.ts`** — availability status. The resume is served from `public/CV-Tran-Quang-Phong.pdf`; note that everything in that file is public.
 3. **`src/data/openSource.ts`** — real repositories and contributions; remove `placeholder: true`.
 4. **`src/data/leadership.ts`** — add `evidence` links as artefacts become publishable.
@@ -207,6 +207,18 @@ Fonts (Geist, Geist Mono) are configured in `astro.config.ts`, downloaded at bui
 - **Search** fetches `/search.json`, generated at build time from every content collection, and ranks matches in the browser.
 - **Project filtering** on `/projects/` uses five non-overlapping groups from `src/data/projectGroups.ts`, covering both case studies and client work. The selection is kept in the URL (`?group=fintech`); without JavaScript all projects are shown.
 - **The contact form** composes a pre-filled email in the visitor's mail client. Nothing is sent from the page.
+
+## Deploying to GitHub Pages
+
+The site is configured for the project site at `https://mockingbitch.github.io/portfolio/`:
+`url` and `base` are set in `src/config/site.ts`, and every internal link goes through
+`withBase` in `src/lib/url.ts`.
+
+1. In the repository on GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**. This is a one-time step.
+2. Push to `master`. `.github/workflows/deploy.yml` type-checks, builds and deploys; it can also be run by hand from the Actions tab.
+
+To serve from a domain root instead (a custom domain, or Cloudflare Pages), set `base: '/'` and the
+new origin in `src/config/site.ts`.
 
 ## Deploying to Cloudflare Pages
 

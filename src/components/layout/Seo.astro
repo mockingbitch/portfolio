@@ -1,4 +1,5 @@
 ---
+import { absoluteUrl } from '@/lib/url';
 import { site } from '@/config/site';
 import { profile } from '@/data/profile';
 
@@ -24,7 +25,7 @@ const {
 const siteName = `${profile.name} — ${site.titleSuffix}`;
 const fullTitle = title ? `${title} — ${profile.name}` : siteName;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const imageUrl = new URL(image, Astro.site);
+const imageUrl = absoluteUrl(image, Astro.site);
 ---
 
 <title>{fullTitle}</title>

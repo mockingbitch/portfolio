@@ -1,6 +1,7 @@
 import rss from '@astrojs/rss';
 import type { APIRoute } from 'astro';
 import { site } from '@/config/site';
+import { absoluteUrl } from '@/lib/url';
 import { profile } from '@/data/profile';
 import { getInsightCategory } from '@/data/insightCategories';
 import { getPublishedInsights, insightPath } from '@/lib/content';
@@ -12,7 +13,8 @@ export const GET: APIRoute = async (context) => {
   return rss({
     title: `${profile.name} — Insights`,
     description: site.description,
-    site: context.site ?? site.url,
+    // The channel link is the site home, including the base path.
+    site: absoluteUrl('/', context.site ?? site.url),
     trailingSlash: true,
     items: insights.flatMap((insight) =>
       insight.data.pubDate

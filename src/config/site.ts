@@ -3,8 +3,13 @@
  * Everything here is build-time only — edit and redeploy.
  */
 export const site = {
-  /** Production origin, without a trailing slash. Used for canonical URLs, sitemap, RSS and Open Graph. */
-  url: 'https://example.com',
+  /** Production origin, without a trailing slash and without the base path. */
+  url: 'https://mockingbitch.github.io',
+  /**
+   * Path the site is served from. '/portfolio' for the GitHub Pages project
+   * site; use '/' when deploying to a domain root (custom domain, Cloudflare Pages).
+   */
+  base: '/portfolio',
   /** Appended to every page title. */
   titleSuffix: 'Software Engineer & Solution Architect',
   /** Default meta description, used when a page does not provide one. */

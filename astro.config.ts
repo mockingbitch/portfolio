@@ -6,6 +6,7 @@ import { site } from './src/config/site';
 
 export default defineConfig({
   site: site.url,
+  base: site.base,
   output: 'static',
   trailingSlash: 'always',
   integrations: [mdx(), react()],

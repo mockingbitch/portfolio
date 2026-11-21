@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import { footerNavigation } from '@/data/navigation';
 import { profile } from '@/data/profile';
 import { social } from '@/data/social';
@@ -21,7 +22,7 @@ const linkClass = 'text-sm text-muted transition-colors hover:text-fg';
           <ul class="mt-4 space-y-2.5">
             {group.items.map((item) => (
               <li>
-                <a href={item.href} class={linkClass}>
+                <a href={withBase(item.href)} class={linkClass}>
                   {item.label}
                 </a>
               </li>
@@ -47,13 +48,13 @@ const linkClass = 'text-sm text-muted transition-colors hover:text-fg';
         {
           profile.resume.href && (
             <li>
-              <a href={profile.resume.href} class={linkClass} download>
+              <a href={withBase(profile.resume.href)} class={linkClass} download>
                 {profile.resume.label}
               </a>
             </li>
           )
         }
-        <li><a href="/rss.xml" class={linkClass}>RSS</a></li>
+        <li><a href={withBase('/rss.xml')} class={linkClass}>RSS</a></li>
       </ul>
     </div>
   </div>

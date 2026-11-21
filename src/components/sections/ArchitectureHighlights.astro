@@ -1,4 +1,5 @@
 ---
+import { withBase } from '@/lib/url';
 import ArrowRight from '@lucide/astro/icons/arrow-right';
 import Section from '@/components/layout/Section.astro';
 import { formatIndex } from '@/lib/format';
@@ -39,7 +40,7 @@ const areas = [
           <p class="label">{formatIndex(index + 1)}</p>
           <h3 class="mt-6 text-lg tracking-tight">
             <a
-              href={area.href}
+              href={withBase(area.href)}
               class="outline-none transition-colors duration-150 after:absolute after:inset-0 group-hover:text-accent focus-visible:text-accent focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-accent"
             >
               {area.title}
