@@ -1,0 +1,19 @@
+---
+/**
+ * Expandable explanation for MDX:
+ *   <Details summary="Why not one goroutine per job?"> ... </Details>
+ */
+interface Props {
+  summary: string;
+  open?: boolean;
+}
+
+const { summary, open = false } = Astro.props;
+---
+
+<details open={open}>
+  <summary>{summary}</summary>
+  <div class="details-body">
+    <slot />
+  </div>
+</details>

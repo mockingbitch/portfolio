@@ -1,0 +1,29 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import InsightsIndex from '@/components/articles/InsightsIndex.astro';
+import { insightCategories } from '@/data/insightCategories';
+import { getInsights, type Insight } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const insights = await getInsights();
+  return insightCategories.map((category) => ({
+    params: { category: category.slug },
+    props: {
+      category,
+      insights: insights.filter((insight) => insight.data.category === category.slug),
+    },
+  }));
+}
+
+interface Props {
+  category: (typeof insightCategories)[number];
+  insights: Insight[];
+}
+
+const { category, insights } = Astro.props;
+const hasPublished = insights.some((insight) => !insight.data.draft);
+---
+
+<BaseLayout title={`${category.label} — Insights`} description={category.description} noindex={!hasPublished}>
+  <InsightsIndex insights={insights} title={category.label} lead={category.description} activeCategory={category.slug} />
+</BaseLayout>

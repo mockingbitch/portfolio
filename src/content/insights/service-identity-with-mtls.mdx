@@ -1,0 +1,94 @@
+---
+title: Service identity with mTLS
+description: "Mutual TLS gives every workload a verifiable identity on each connection, but it only pays off when certificates are short-lived, rotation is automatic and authorization remains a separate decision."
+category: security-engineering
+pubDate: 2026-11-21
+draft: false
+---
+
+## Context
+
+Inside many systems, a service decides whether to trust a caller by where the request came from. It arrived from inside the private network, or from an allowed address range, so it must be one of ours. Sometimes there is a shared API key on top, copied into several services and rarely changed.
+
+Both are weak statements about identity. A network position says where a packet came from, and any compromised workload inside the perimeter inherits it. A shared key says the caller is one of the many holders of that key, and it does not say which one. Neither lets a service answer the basic question: which workload is calling me?
+
+Mutual TLS answers it. This note covers what the model asserts, what it costs to operate, and what it deliberately leaves unsolved.
+
+## The model
+
+In ordinary TLS the client verifies the server. In mutual TLS the server also asks the client for a certificate and verifies it. Both sides finish the handshake knowing that the peer holds the private key for a certificate signed by an authority they trust.
+
+A certificate is a signed statement: this public key belongs to this name, until this time. For services, the name should identify the workload and not the machine. The SPIFFE convention encodes it as a URI in the subject alternative name, for example `spiffe://example.internal/ns/payments/sa/ledger`. Hostnames and addresses change with every reschedule; a workload name does not.
+
+Three things follow from the model:
+
+- **Identity is proven per connection**, by possession of a private key that never leaves the workload. There is no bearer secret in a header to leak into logs.
+- **The certificate authority is the root of the whole scheme.** Whoever can obtain a certificate for a name is that name. How the authority decides that a requester really is the ledger service, by platform attestation such as a Kubernetes service account token or a cloud instance identity document, matters more than the cryptography.
+- **Encryption comes along with it**, but it is not the point. The point is authentication of both ends.
+
+In Go, the server side is a few lines. The important parts are requiring a verified client certificate and reading the identity from the verified chain, never from a header.
+
+```go
+func serverTLS(
+	clientCAs *x509.CertPool,
+	getCert func(*tls.ClientHelloInfo) (*tls.Certificate, error),
+) *tls.Config {
+	return &tls.Config{
+		MinVersion: tls.VersionTLS13,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		ClientCAs:  clientCAs,
+		// Called on every handshake, so a renewed certificate is
+		// picked up without restarting the process.
+		GetCertificate: getCert,
+	}
+}
+
+// callerID returns the workload identity of the verified peer.
+func callerID(r *http.Request) (string, error) {
+	if r.TLS == nil || len(r.TLS.VerifiedChains) == 0 {
+		return "", errors.New("no verified client certificate")
+	}
+	leaf := r.TLS.VerifiedChains[0][0]
+	if len(leaf.URIs) != 1 {
+		return "", errors.New("expected exactly one URI SAN")
+	}
+	return leaf.URIs[0].String(), nil
+}
+```
+
+## Operating it
+
+The handshake is the easy part. Running a private PKI is where the cost sits.
+
+**Issuance.** The root key stays offline or in a hardware-backed key service and signs only intermediates. An online intermediate issues leaf certificates to workloads that pass attestation. No human copies a certificate into a deployment; if issuance needs a ticket, the lifetimes will drift upward until the scheme stops meaning anything.
+
+**Rotation.** I prefer leaf certificates that live for hours, or a day at most, renewed automatically at roughly half their lifetime. Short lifetimes are what make the rest tractable: a stolen key is useful only briefly, and rotation happens so often that it cannot be a fragile, rarely exercised procedure. The process must reload certificates without a restart, which is what the `GetCertificate` callback above is for.
+
+**Revocation.** Revocation lists and OCSP are awkward to distribute and check reliably inside a cluster. With short-lived certificates, the practical revocation mechanism is to stop renewing: the authority refuses the next request and the identity expires within hours. For a faster response, deny the identity at the authorization layer.
+
+**Rotating the authority itself.** Intermediates and roots expire too, on a scale of months or years, which is long enough for everyone to forget. Trust bundles need to carry both old and new authorities during an overlap period, and the distribution of those bundles needs the same automation as leaf certificates.
+
+**Expiry at the wrong moment.** The characteristic failure of mTLS is that everything works until a certificate expires, and then nothing does, across every connection at once. The issuer becomes a critical dependency: if it is down for longer than the remaining lifetime of the certificates, services start refusing each other. The mitigations are unglamorous. Renew early so there is slack. Export the remaining lifetime of every certificate as a metric and alert well before zero. Run the issuer with redundancy. Keep clocks synchronised, since a skewed clock sees valid certificates as expired or not yet valid.
+
+**Debuggability.** A failed handshake produces terse errors. Log the peer identity, certificate serial and expiry on connection, so that a rejected call can be explained without a packet capture.
+
+## Where authorization fits
+
+mTLS establishes who is calling. It says nothing about whether they may do what they are asking. Treating "has a valid certificate from our authority" as "is allowed" recreates the flat internal network with extra steps: every workload can call every endpoint.
+
+Authorization is a second, explicit decision, made by the receiving service at the point of the request: this identity may call this operation. A static allow list per service is enough to start with, and policy can move to a policy engine when the rules need attributes or central review. Default to deny.
+
+Service identity is also not user identity. When a request is made on behalf of a person, the service certificate says which workload forwarded it, and a separate signed token carries who the user is and what they delegated. Both are checked. A service that is allowed to call the ledger should not thereby be allowed to act as any user it likes.
+
+## When I would not do this
+
+For a handful of services in one trust domain, run by one team, a private PKI may cost more than the risk it removes. Network policy plus per-service credentials from a secret store is a defensible starting point, provided the credentials are per caller and rotated.
+
+I would also avoid hand-rolling issuance and rotation in application code across many services. If mTLS is needed broadly, a service mesh or a SPIFFE implementation does the certificate handling outside the application, at the price of another component to run and understand. And at the public edge, where the clients are browsers and third parties, mTLS is usually the wrong tool; token-based authentication fits there.
+
+## Takeaways
+
+- Network location and shared keys do not identify a caller. A certificate bound to a workload name, verified on every connection, does.
+- The hard part is operations: automated issuance by attestation, lifetimes measured in hours, reload without restart, and alerts on remaining lifetime.
+- Plan for the issuer being unavailable and for authority rotation before either happens.
+- Identity is the input to authorization, not a substitute for it. Decide per operation, default to deny, and carry user identity separately.

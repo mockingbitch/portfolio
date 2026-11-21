@@ -3,7 +3,7 @@ import { render } from 'astro:content';
 import ArticleLayout from '@/layouts/ArticleLayout.astro';
 import Tag from '@/components/ui/Tag.astro';
 import { mdxComponents } from '@/components/mdx';
-import { getSystemDesignStudies, type SystemDesignStudy } from '@/lib/content';
+import { getSystemDesignStudies, publishedDate, type SystemDesignStudy } from '@/lib/content';
 import { formatDate } from '@/lib/format';
 
 export async function getStaticPaths() {
@@ -18,16 +18,19 @@ interface Props {
 const { study } = Astro.props;
 const { data } = study;
 const { Content, headings } = await render(study);
-const published = !data.draft && data.pubDate ? data.pubDate : undefined;
+const published = publishedDate(data);
+const reviewMessage =
+  'This is a complete draft awaiting the author’s review. Check the design, code and claims against your own experience before publishing.';
 ---
 
 <ArticleLayout
   title={data.title}
   description={data.summary}
-  back={{ href: '/architecture/#system-design', label: 'Architecture' }}
+  back={{ href: '/architecture/#system-design', label: 'Architecture Lab' }}
   headings={headings}
   draft={data.draft}
   draftKind="system design study"
+  draftMessage={data.stage === 'review' ? reviewMessage : undefined}
   publishedTime={published}
 >
   <Fragment slot="meta">

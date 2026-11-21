@@ -6,6 +6,8 @@ import DraftNotice from '@/components/ui/DraftNotice.astro';
 import Prose from '@/components/ui/Prose.astro';
 import TableOfContents from '@/components/ui/TableOfContents.astro';
 import type { ComponentProps } from 'astro/types';
+import { site } from '@/config/site';
+import { profile } from '@/data/profile';
 
 /**
  * Shared page for long-form MDX entries (notes, system design studies,
@@ -19,13 +21,27 @@ interface Props {
   headings: MarkdownHeading[];
   draft: boolean;
   draftKind: ComponentProps<typeof DraftNotice>['kind'];
+  /** Overrides the default draft notice text. */
+  draftMessage?: string;
   publishedTime?: Date;
 }
 
-const { title, description, back, headings, draft, draftKind, publishedTime } = Astro.props;
+const { title, description, back, headings, draft, draftKind, draftMessage, publishedTime } = Astro.props;
+
+// Structured data is only emitted for published entries.
+const articleSchema = publishedTime && {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: title,
+  description,
+  datePublished: publishedTime.toISOString(),
+  author: { '@type': 'Person', name: profile.name, url: site.url },
+  mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href,
+};
 ---
 
 <BaseLayout title={title} description={description} type="article" noindex={draft} publishedTime={publishedTime}>
+  {articleSchema && <script type="application/ld+json" slot="head" is:inline set:html={JSON.stringify(articleSchema)} />}
   <article>
     <header class="shell pb-14 pt-12 lg:pb-20 lg:pt-16">
       <ArrowLink href={back.href} direction="back">{back.label}</ArrowLink>
@@ -44,7 +60,7 @@ const { title, description, back, headings, draft, draftKind, publishedTime } = 
     <div class="border-t border-line">
       <div class="shell grid gap-x-8 gap-y-12 py-16 lg:grid-cols-12 lg:py-24">
         <aside class="lg:col-span-3">
-          <div class="space-y-10 lg:sticky lg:top-24">
+          <div class="space-y-10 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-2">
             <TableOfContents headings={headings} />
             <slot name="aside" />
           </div>
@@ -53,7 +69,7 @@ const { title, description, back, headings, draft, draftKind, publishedTime } = 
           {
             draft && (
               <div class="mb-12 max-w-[44rem]">
-                <DraftNotice kind={draftKind} />
+                <DraftNotice kind={draftKind} message={draftMessage} />
               </div>
             )
           }

@@ -1,0 +1,30 @@
+---
+import Section from '@/components/layout/Section.astro';
+import ProjectRow from '@/components/projects/ProjectRow.astro';
+import ArrowLink from '@/components/ui/ArrowLink.astro';
+
+import type { Project } from '@/lib/content';
+
+interface Props {
+  index?: string;
+  /** All visible projects; the featured ones are listed. */
+  projects: Project[];
+}
+
+const { projects } = Astro.props;
+const featured = projects.filter((project) => project.data.featured);
+---
+
+<Section
+  id="projects"
+  index={Astro.props.index}
+  label="Featured projects"
+  title="Platforms, services and the infrastructure underneath them."
+>
+  <div class="border-t border-line" data-reveal-stagger>
+    {featured.map((project) => <ProjectRow project={project} />)}
+  </div>
+  <div class="mt-10">
+    <ArrowLink href="/projects/">All {projects.length} projects</ArrowLink>
+  </div>
+</Section>

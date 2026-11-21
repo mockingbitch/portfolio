@@ -1,0 +1,50 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import { mdxComponents } from '@/components/mdx';
+import { getDeepDiveTopic } from '@/data/deepDiveTopics';
+import { getDeepDives, publishedDate, type DeepDive } from '@/lib/content';
+import { formatDate } from '@/lib/format';
+
+export async function getStaticPaths() {
+  const deepDives = await getDeepDives();
+  return deepDives.map((deepDive) => ({ params: { slug: deepDive.id }, props: { deepDive } }));
+}
+
+interface Props {
+  deepDive: DeepDive;
+}
+
+const { deepDive } = Astro.props;
+const { data } = deepDive;
+const { Content, headings } = await render(deepDive);
+const published = publishedDate(data);
+const reviewMessage =
+  'This is a complete draft awaiting the author’s review. Check the design, code and claims against your own experience before publishing.';
+---
+
+<ArticleLayout
+  title={data.title}
+  description={data.description}
+  back={{ href: '/deep-dives/', label: 'All deep dives' }}
+  headings={headings}
+  draft={data.draft}
+  draftKind="deep dive"
+  draftMessage={data.stage === 'review' ? reviewMessage : undefined}
+  publishedTime={published}
+>
+  <Fragment slot="meta">
+    <p class="label"><span class="text-accent">{getDeepDiveTopic(data.topic).title}</span></p>
+    <p class="label">
+      {published ? <time datetime={published.toISOString()}>{formatDate(published)}</time> : 'Unpublished draft'}
+    </p>
+    {
+      published && data.updatedDate && (
+        <p class="label">
+          Updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time>
+        </p>
+      )
+    }
+  </Fragment>
+  <Content components={mdxComponents} />
+</ArticleLayout>

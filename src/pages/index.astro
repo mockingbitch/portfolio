@@ -1,22 +1,43 @@
 ---
+import { getImage } from 'astro:assets';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/layout/Section.astro';
 import Hero from '@/components/sections/Hero.astro';
-import About from '@/components/sections/About.astro';
-import Expertise from '@/components/sections/Expertise.astro';
-import SelectedWorks from '@/components/sections/SelectedWorks.astro';
-import Architecture from '@/components/sections/Architecture.astro';
-import LatestNotes from '@/components/sections/LatestNotes.astro';
+import ExpertiseOverview from '@/components/sections/ExpertiseOverview.astro';
+import FeaturedProjects from '@/components/sections/FeaturedProjects.astro';
+import ArchitectureHighlights from '@/components/sections/ArchitectureHighlights.astro';
+import Principles from '@/components/sections/Principles.astro';
+import ExperienceList from '@/components/sections/ExperienceList.astro';
 import Contact from '@/components/sections/Contact.astro';
+import ArrowLink from '@/components/ui/ArrowLink.astro';
 import { site } from '@/config/site';
+import { experience } from '@/data/experience';
+import { philosophy } from '@/data/philosophy';
+import { portrait } from '@/data/portrait';
 import { profile } from '@/data/profile';
 import { social } from '@/data/social';
+import { getProjects, withoutHiddenPlaceholders } from '@/lib/content';
+import { formatIndex } from '@/lib/format';
+
+const experienceEntries = withoutHiddenPlaceholders(experience).slice(0, 3);
+const projects = await getProjects();
+const hasFeatured = projects.some((project) => project.data.featured);
+
+// Optional sections are numbered in the order they actually appear.
+let section = 0;
+const nextIndex = () => formatIndex(++section);
+
+const portraitImage = await getImage({ src: portrait.square, width: 640, height: 640 });
 
 const personSchema = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: profile.name,
+  jobTitle: profile.title,
   url: site.url,
+  image: new URL(portraitImage.src, site.url).href,
   description: profile.statement,
+  knowsAbout: profile.domains,
   sameAs: social.map((item) => item.href),
 };
 ---
@@ -24,10 +45,38 @@ const personSchema = {
 <BaseLayout description={profile.statement}>
   <script type="application/ld+json" slot="head" is:inline set:html={JSON.stringify(personSchema)} />
   <Hero />
-  <About index="01" />
-  <Expertise index="02" />
-  <SelectedWorks index="03" />
-  <Architecture index="04" />
-  <LatestNotes index="05" />
-  <Contact index="06" />
+  <ExpertiseOverview index={nextIndex()} />
+  {hasFeatured && <FeaturedProjects index={nextIndex()} projects={projects} />}
+  <ArchitectureHighlights index={nextIndex()} />
+
+  <Section
+    id="principles"
+    index={nextIndex()}
+    label="Principles"
+    title="Five ideas that shape most of my engineering decisions."
+  >
+    <Principles items={philosophy.principles} />
+    <div class="mt-10 flex flex-wrap gap-x-8 gap-y-3">
+      <ArrowLink href="/about/">About my approach</ArrowLink>
+      <ArrowLink href="/leadership/">Technical leadership</ArrowLink>
+    </div>
+  </Section>
+
+  {
+    experienceEntries.length > 0 && (
+      <Section
+        id="experience"
+        index={nextIndex()}
+        label="Experience"
+        title="Where this practice was built."
+      >
+        <ExperienceList entries={experienceEntries} />
+        <div class="mt-10">
+          <ArrowLink href="/about/#career">Full career progression</ArrowLink>
+        </div>
+      </Section>
+    )
+  }
+
+  <Contact index={nextIndex()} />
 </BaseLayout>

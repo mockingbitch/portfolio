@@ -1,6 +1,6 @@
 # Engineering Portfolio
 
-A static, content-driven portfolio for a backend and platform engineer. Built with Astro, TypeScript (strict), Tailwind CSS and MDX. Dark by default, with a light theme.
+A static, content-driven site for a senior software engineer and solution architect: project case studies, an architecture lab with interactive diagrams, engineering deep dives, and a technical blog. Built with Astro, TypeScript (strict), Tailwind CSS and MDX. Dark by default, with a light theme.
 
 ## Requirements
 
@@ -9,42 +9,67 @@ A static, content-driven portfolio for a backend and platform engineer. Built wi
 
 ## Commands
 
-| Command           | What it does                                             |
-| ----------------- | -------------------------------------------------------- |
-| `npm install`     | Install dependencies                                     |
-| `npm run dev`     | Start the dev server at `http://localhost:4321`          |
-| `npm run check`   | Type-check `.astro`, `.ts` and `.tsx` files              |
-| `npm run build`   | Build the static site into `dist/`                       |
-| `npm run preview` | Serve the production build locally                       |
-| `npm run og`      | Regenerate `public/og-default.png` from the headline     |
+| Command           | What it does                                         |
+| ----------------- | ---------------------------------------------------- |
+| `npm install`     | Install dependencies                                 |
+| `npm run dev`     | Start the dev server at `http://localhost:4321`      |
+| `npm run check`   | Type-check `.astro`, `.ts` and `.tsx` files          |
+| `npm run build`   | Build the static site into `dist/`                   |
+| `npm run preview` | Serve the production build locally                   |
+| `npm run og`      | Regenerate `public/og-default.png` from the headline |
+| `npm run covers`  | Regenerate project card thumbnails from their specs  |
+
+## Sitemap
+
+| Route | Purpose | Source |
+| --- | --- | --- |
+| `/` | Positioning, expertise, featured projects, architecture, principles, experience, contact | `src/data/*` |
+| `/about/` | Profile, philosophy, specialization, interests, career, collaboration | `philosophy.ts`, `experience.ts` |
+| `/expertise/` | Eight engineering domains, each with linked evidence | `expertise.ts` + content `domains` |
+| `/projects/`, `/projects/<slug>/` | Case studies, filterable by domain | `content/projects` |
+| `/architecture/` | Architecture Lab: playground and system design studies | `diagrams.ts`, `content/system-design` |
+| `/architecture/playground/` | Interactive diagrams | `diagrams.ts` |
+| `/architecture/system-design/<slug>/` | A system design study | `content/system-design` |
+| `/deep-dives/`, `/deep-dives/<slug>/` | Twelve-topic curriculum and its articles | `deepDiveTopics.ts`, `content/deep-dives` |
+| `/leadership/` | Technical leadership areas | `leadership.ts` |
+| `/insights/`, `/insights/category/<slug>/`, `/insights/<slug>/` | Engineering blog | `content/insights`, `insightCategories.ts` |
+| `/open-source/` | Libraries, tools, contributions | `openSource.ts` |
+| `/contact/` | Channels and contact form | `profile.ts`, `social.ts` |
+| `/search/` | Client-side search over `/search.json` | `lib/search.ts` |
+| `/rss.xml`, `/sitemap.xml`, `/robots.txt` | Feeds and crawler files | `src/pages` |
+
+`public/_redirects` maps the old `/notes/*` routes to `/insights/`.
+
+The decision records section was removed from the site. Its source files are kept locally in `archive/decisions/`, which is ignored by git.
 
 ## Before you publish
 
 The site ships with placeholders instead of invented personal details. Replace them first:
 
-1. **`src/config/site.ts`** — set `url` to your production origin. Canonical URLs, the sitemap, `robots.txt`, RSS and Open Graph tags all derive from it.
-2. **`src/data/profile.ts`** — name, wordmark, email, optional location and availability status.
-3. **`src/data/social.ts`** — GitHub and LinkedIn URLs and handles.
-4. **`src/data/technologies.ts`** — the proficiency tier of each technology. The defaults are inferred, not verified; move each item to the tier that matches your experience.
-5. **`src/data/timeline.ts`** and **`src/data/openSource.ts`** — both ship with entries marked `placeholder: true`. Replace them with real milestones and contributions.
-6. **`src/data/diagrams.ts`** — the two interactive diagrams are generic reference models. Adapt them or add your own.
-7. **`src/content/projects/*.mdx`** — fill in `role`, `status`, `period`, replace every `<Placeholder>` block and the illustrative diagrams, then set `draft: false`.
-8. Run `npm run og` to regenerate the social preview image with your name.
+1. **`src/config/site.ts`** — set `url` to your production origin.
+2. **`src/data/profile.ts`** — availability status. The resume is served from `public/CV-Tran-Quang-Phong.pdf`; note that everything in that file is public.
+3. **`src/data/openSource.ts`** — real repositories and contributions; remove `placeholder: true`.
+4. **`src/data/leadership.ts`** — add `evidence` links as artefacts become publishable.
+5. **Everything in `src/content/` is published.** To take an entry down, set `status: draft` (projects) or `draft: true` (other collections).
+6. **Review the other complete drafts** before publishing: the six system design studies, the deep dive, the six insights and decision records 0005–0020. They are finished text, but they should go out only once you agree with every claim.
+7. Run `npm run og` after changing the name or headline.
 
 ## Where things live
 
 ```
 src/
   config/site.ts          Site URL, default metadata, draft visibility
-  data/                   Profile, navigation, social links, expertise, philosophy, technologies,
-                          note categories, interactive diagrams, timeline, open-source work
+  assets/                 Portrait (avatar.jpeg) and its square crop; resized and converted at build time
+  data/                   Profile, portrait, navigation, social, expertise domains, philosophy,
+                          experience and education, client work, leadership, open source,
+                          insight categories, deep-dive topics, diagrams
   content/
-    projects/             One MDX file per case study
-    notes/                One MDX file per technical note
-    system-design/        One MDX file per system design study
-    decisions/            One MDX file per decision record (ADR)
+    projects/             Case studies
+    system-design/        Architecture Lab studies
+    deep-dives/           Engineering deep dives
+    insights/             Blog articles
   content.config.ts       Content collection schemas
-  lib/                    Content queries and formatting helpers
+  lib/                    Content queries, search index, formatting helpers
   layouts/                BaseLayout (HTML shell, fonts, SEO) and ArticleLayout (long-form MDX pages)
   components/
     layout/               Header, Footer, Section, PageHeader, Seo
@@ -52,88 +77,106 @@ src/
     sections/             Home and about page sections
     projects/ articles/   List rows and listings
     diagrams/             Mermaid runtime, interactive diagram explorer
-    ui/                   Buttons, tags, prose wrapper, contact form
-  pages/                  Routes, plus rss.xml, sitemap.xml and robots.txt
+    ui/                   Buttons, tags, prose wrapper, details, contact form
+    mdx.ts                Components available in every MDX file
+  pages/                  Routes
   styles/global.css       Design tokens, utilities and long-form typography
 ```
 
 Components never hardcode personal data — they read it from `src/data` and `src/config`.
 
-## Editing content
+## Drafts and placeholders
+
+Every content entry has `draft` (default `true`). Drafts are always visible in `npm run dev`. `showDraftsInProduction` in `src/config/site.ts` is currently `false`, so **production builds contain no drafts** — to publish an entry, set `draft: false` in its frontmatter. Setting the flag to `true` builds drafts for production too, labelled, marked `noindex` and left out of the sitemap and RSS feed. Data entries with `placeholder: true`, and diagrams with `draft: true` in `src/data/diagrams.ts`, follow the same rule; a section with nothing visible is not rendered.
+
+System design studies and deep dives also take `stage`: `outline` (a skeleton of placeholders, the default) or `review` (complete text awaiting sign-off). It only changes the wording of the draft notice.
+
+## Content types
 
 ### Projects
-
-Each file in `src/content/projects/` becomes a page at `/projects/<file-name>/`.
 
 ```yaml
 ---
 title: MCP Platform
+category: AI Agent Control Plane
 summary: One-sentence description.
-order: 1                 # position in the list
-role: Lead engineer      # optional — shows "To be added" while missing
-status: In production    # optional
-period: 2025 — present   # optional
-focus: [Go, PostgreSQL]
-links:                   # optional
-  - { label: Repository, href: https://github.com/... }
-draft: true              # false once the case study is real
+order: 1                       # position in the list
+featured: true                 # shown on the home page
+status: draft                  # published | draft
+group: ai-agents               # exactly one id from src/data/projectGroups.ts
+role: Lead engineer            # optional
+period: 2025 – present         # optional
+impact: ["12k req/s"]          # optional, 1–3 measured results — never estimates
+teamSize: 11                   # optional
+client: Product company        # optional
+lifecycle: In production       # optional
+tech: [Go, PostgreSQL, Redis]  # full list, shown on the case study page
+featuredTech: [Go, PostgreSQL] # optional, max 5, shown on the card
+coverDiagram: ./covers/mcp-platform.svg   # optional thumbnail, relative to the MDX file
+coverDiagramAlt: Three processes around a gateway   # optional
+domains: [backend, security]   # ids from src/data/expertise.ts
+stage: review                  # outline (default) | review — wording of the draft notice
 ---
 ```
 
-While `draft` is `true` the page carries a visible draft notice, is marked `noindex`, and is left out of the sitemap.
-
-### Notes
-
-Each file in `src/content/notes/` becomes a page at `/notes/<file-name>/`. The five files shipped are **templates**, not published articles.
-
-```yaml
----
-title: Note title
-description: One-sentence summary.
-category: backend-engineering   # a slug from src/data/noteCategories.ts
-pubDate: 2026-01-15             # required when draft is false
-draft: false
----
-```
-
-Drafts (notes, studies, decision records) are always visible in `npm run dev`. In production they are shown, labelled as drafts and `noindex`ed, only while `showDraftsInProduction` in `src/config/site.ts` is `true`. Drafts never appear in the RSS feed or sitemap.
+A `draft` project is still listed, with "Case study coming soon" and no link; its page is built only in development. Setting `status: published` builds the page and links the card. The body follows a seventeen-section case study structure, from Project Overview to Results and Business Impact. The API Design section stays high-level by policy: no endpoint paths, payloads, headers or error codes. `group` drives the filter on `/projects/`; `domains` drives the evidence lists on `/expertise/`.
 
 ### System design studies
 
-Files in `src/content/system-design/` become pages at `/architecture/system-design/<file-name>/` and are listed on `/architecture/`. The three shipped files are templates.
-
 ```yaml
 ---
-title: Study title
+title: Distributed Job Scheduler
 summary: One-sentence summary.
-topics: [mTLS, PKI]
+topics: [Scheduling, PostgreSQL]
+domains: [architecture, database]
+stage: review
 pubDate: 2026-01-15   # required when draft is false
 draft: false
 ---
 ```
 
-### Decision records (ADRs)
+Thirteen sections, from Problem Statement to Trade-offs.
 
-Files in `src/content/decisions/` become pages at `/architecture/decisions/<file-name>/`. Copy `0000-template.mdx` to start one.
+### Deep dives
 
 ```yaml
 ---
-number: 5                 # rendered as ADR-0005
-title: What was decided
-summary: The decision in one sentence.
-status: accepted          # proposed | accepted | superseded | deprecated
-date: 2026-01-15
-scope: Project or system the decision applies to
-tags: [Tag]
+title: Worker pools in Go
+description: One-sentence summary.
+topic: worker-pools   # a slug from src/data/deepDiveTopics.ts
+domains: [backend]
+pubDate: 2026-01-15
 draft: false
 ---
 ```
 
-ADR-0001 to ADR-0003 are real records describing how this site is built. Keep, edit or delete them.
+A topic without an article shows as "Planned" on `/deep-dives/` in development only; production lists just the topics that have an article.
 
-### Interactive diagrams
+### Insights
 
-The playground at `/architecture/playground/` and the `<InteractiveDiagram id="..." />` MDX component both draw from `src/data/diagrams.ts`. A diagram is plain data:
+```yaml
+---
+title: Article title
+description: One-sentence summary.
+category: backend-engineering   # a slug from src/data/insightCategories.ts
+pubDate: 2026-01-15
+draft: false
+---
+```
+
+### MDX helpers
+
+Available in every MDX file without an import:
+
+- `<Placeholder>` marks text still to be written. Delete it as you fill sections in.
+- `<InteractiveDiagram id="..." />` embeds an interactive diagram from `src/data/diagrams.ts`.
+- `<Details summary="...">` wraps an expandable explanation.
+- A fenced code block tagged `mermaid` renders as a themed diagram; `sequenceDiagram` works too. Mermaid loads only on pages that contain a diagram.
+- Other fenced code blocks are highlighted at build time and get a copy button.
+
+## Interactive diagrams
+
+The playground and `<InteractiveDiagram>` both draw from `src/data/diagrams.ts`. A diagram is plain data:
 
 - `nodes` sit on a grid (`col`, `row`) and carry a description shown when selected.
 - `edges` connect two node ids; `dashed: true` marks a supporting relationship, and `route: 'hv'` makes the line leave sideways and enter the target from above or below.
@@ -142,28 +185,28 @@ The playground at `/architecture/playground/` and the `<InteractiveDiagram id=".
 
 Add an object to the `diagrams` array and it appears as a new tab in the playground.
 
-### Timeline and open source
-
-`src/data/timeline.ts` and `src/data/openSource.ts` feed two sections on the About page. Entries with `placeholder: true` are labelled on the page and follow the same visibility rule as drafts; a section with no visible entries is not rendered.
-
-### MDX helpers
-
-- `<Placeholder>` marks text still to be written. Delete it as you fill sections in.
-- `<InteractiveDiagram id="..." />` embeds an interactive diagram from `src/data/diagrams.ts`.
-- A fenced code block tagged `mermaid` renders as a diagram that follows the site theme. Mermaid is loaded only on pages that contain a diagram.
-- Other fenced code blocks are highlighted at build time.
-
 ## Design system
 
-Tokens are CSS custom properties in `src/styles/global.css` (`--bg`, `--surface`, `--line`, `--fg`, `--muted`, `--subtle`, `--accent`), defined once for dark and once for light, and exposed to Tailwind as `bg-bg`, `text-muted`, `border-line`, `text-accent` and so on. Change a token and the whole site follows.
+Tokens are CSS custom properties in `src/styles/global.css` (`--bg`, `--surface`, `--line`, `--line-strong`, `--fg`, `--muted`, `--subtle`, `--accent`, `--danger`), defined once for dark and once for light, and exposed to Tailwind as `bg-bg`, `text-muted`, `border-line`, `text-accent` and so on.
+
+### Motion
+
+All motion is progressive enhancement and is disabled under `prefers-reduced-motion`.
+
+- `components/layout/Motion.astro` drives three attributes: `data-reveal` (a 280 ms fade up, triggered as the element enters the viewport), `data-reveal-stagger` (the same for each child, in sequence) and `data-scramble` (mono text that resolves from random glyphs). `data-spotlight` adds a pointer-following glow to a block.
+- `components/sections/HeroField.astro` draws the hero's network backdrop on a canvas; it pauses off-screen and follows the theme.
+- Interactive diagrams animate the highlighted path: dashes flow along active edges and a packet travels each step.
+- The header's reading-progress line uses a CSS scroll timeline, with no JavaScript.
 
 Custom utilities: `shell` (page container), `label` (mono uppercase marker), `link` (inline link), `rise` (entry animation), and the type scale `text-display`, `text-title`, `text-heading`, `text-lead`.
 
 Fonts (Geist, Geist Mono) are configured in `astro.config.ts`, downloaded at build time and self-hosted.
 
-## Contact form
+## Search, filtering and the contact form
 
-The form on `/contact/` composes a pre-filled email in the visitor's mail client. Nothing is sent from the page and no third-party service is involved. To collect submissions server-side later, replace the submit handler in `src/components/ui/ContactForm.tsx`.
+- **Search** fetches `/search.json`, generated at build time from every content collection, and ranks matches in the browser.
+- **Project filtering** on `/projects/` uses five non-overlapping groups from `src/data/projectGroups.ts`, covering both case studies and client work. The selection is kept in the URL (`?group=fintech`); without JavaScript all projects are shown.
+- **The contact form** composes a pre-filled email in the visitor's mail client. Nothing is sent from the page.
 
 ## Deploying to Cloudflare Pages
 
@@ -191,4 +234,5 @@ npx wrangler pages deploy
 
 - `wrangler.toml` — Pages project name and output directory.
 - `public/_headers` — security headers and long-lived caching for hashed assets.
+- `public/_redirects` — redirects for renamed routes.
 - `src/pages/404.astro` — built as `404.html`, which Pages serves for unknown routes.

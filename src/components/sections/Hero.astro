@@ -1,37 +1,63 @@
 ---
+import { Image } from 'astro:assets';
+import Download from '@lucide/astro/icons/download';
+import { portrait } from '@/data/portrait';
 import { profile } from '@/data/profile';
 import { social } from '@/data/social';
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import ArrowLink from '@/components/ui/ArrowLink.astro';
+import HeroField from '@/components/sections/HeroField.astro';
 import { formatIndex } from '@/lib/format';
 ---
 
-<section aria-labelledby="hero-heading" class="shell pb-20 pt-16 sm:pt-24 lg:pb-28 lg:pt-32">
+<div class="hero-grid relative isolate overflow-hidden">
+<HeroField />
+<section aria-labelledby="hero-heading" class="shell pb-20 pt-14 sm:pt-20 lg:pb-28 lg:pt-28">
   <div class="rise flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
-    <p class="label">{profile.positioning.join('  /  ')}</p>
+    <div class="flex items-center gap-4">
+      <Image
+        src={portrait.square}
+        alt={portrait.alt}
+        width={128}
+        height={128}
+        loading="eager"
+        class="size-16 rounded-[2px] object-cover"
+      />
+      <div>
+        <p class="text-[0.9375rem] font-medium tracking-tight">{profile.name}</p>
+        <p class="label mt-1 text-muted" data-scramble>{profile.positioning.join('  /  ')}</p>
+      </div>
+    </div>
     {
       profile.availability.enabled && (
         <p class="label flex items-center gap-2.5">
-          <span class="size-1.5 rounded-full bg-accent" aria-hidden="true" />
+          <span class="status-dot" aria-hidden="true" />
           {profile.availability.label}
         </p>
       )
     }
   </div>
 
-  <h1 id="hero-heading" class="rise mt-10 text-display lg:mt-14" style="--rise-step: 1">
-    <span class="block">{profile.headline.primary}</span>
-    <span class="block text-muted">{profile.headline.secondary}</span>
+  <h1 id="hero-heading" class="mt-10 text-display lg:mt-14">
+    <span class="line-mask" style="--rise-step: 1"><span>{profile.headline.primary}</span></span>
+    <span class="line-mask text-muted" style="--rise-step: 2"><span>{profile.headline.secondary}</span></span>
   </h1>
 
-  <div class="mt-14 grid gap-x-8 gap-y-14 lg:mt-20 lg:grid-cols-12">
+  <div class="mt-12 grid gap-x-8 gap-y-14 lg:mt-16 lg:grid-cols-12">
     <div class="rise lg:col-span-7" style="--rise-step: 2">
       <p class="max-w-2xl text-lead text-fg">{profile.statement}</p>
-      <p class="mt-5 max-w-xl text-muted">{profile.intro}</p>
 
-      <div class="mt-10 flex flex-wrap items-center gap-x-8 gap-y-5">
+      <div class="mt-10 flex flex-wrap items-center gap-3">
         <ButtonLink href="/contact/">Get in touch</ButtonLink>
-        <ArrowLink href="/projects/">Selected work</ArrowLink>
+        <ButtonLink href="/projects/" variant="secondary">View projects</ButtonLink>
+        {
+          profile.resume.href && (
+            <ButtonLink href={profile.resume.href} variant="secondary" plain download>
+              <Download class="size-4" aria-hidden="true" />
+              {profile.resume.label}
+            </ButtonLink>
+          )
+        }
       </div>
 
       <ul class="mt-10 flex flex-wrap gap-x-7 gap-y-3 border-t border-line pt-6">
@@ -42,15 +68,16 @@ import { formatIndex } from '@/lib/format';
             </li>
           ))
         }
+        <li><ArrowLink href="/architecture/playground/">Architecture playground</ArrowLink></li>
       </ul>
     </div>
 
     <div class="rise lg:col-span-4 lg:col-start-9" style="--rise-step: 3">
-      <h2 class="label">Technical focus</h2>
-      <ol class="mt-5 border-t border-line">
+      <h2 class="label">Core domains</h2>
+      <ol class="scan-list mt-5 border-t border-line" style={`--scan-count: ${profile.domains.length}`}>
         {
-          profile.focus.map((item, index) => (
-            <li class="flex gap-5 border-b border-line py-3.5 text-[0.9375rem]">
+          profile.domains.map((item, index) => (
+            <li class="flex gap-5 border-b border-line py-3 text-[0.9375rem]" style={`--scan-index: ${index}`}>
               <span class="label pt-0.5">{formatIndex(index + 1)}</span>
               <span>{item}</span>
             </li>
@@ -60,3 +87,4 @@ import { formatIndex } from '@/lib/format';
     </div>
   </div>
 </section>
+</div>

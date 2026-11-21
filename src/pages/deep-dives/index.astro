@@ -1,0 +1,77 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHeader from '@/components/layout/PageHeader.astro';
+import DraftBadge from '@/components/ui/DraftBadge.astro';
+import { deepDiveTopics } from '@/data/deepDiveTopics';
+import { deepDivePath, getDeepDives, showDrafts } from '@/lib/content';
+import { formatIndex } from '@/lib/format';
+
+const deepDives = await getDeepDives();
+const allTopics = deepDiveTopics.map((topic) => ({
+  ...topic,
+  articles: deepDives.filter((entry) => entry.data.topic === topic.slug),
+}));
+const written = allTopics.filter((topic) => topic.articles.length > 0).length;
+// Topics without an article yet are an authoring aid: shown in development, left out of production.
+const topics = allTopics.filter((topic) => showDrafts || topic.articles.length > 0);
+---
+
+<BaseLayout
+  title="Engineering deep dives"
+  description="Technical deep dives on Go concurrency, PostgreSQL, Redis, distributed transactions, Kubernetes, zero-downtime deployment, observability and security."
+>
+  <PageHeader
+    label="Deep dives"
+    title="How things actually work, with code."
+    lead="Deep dives across concurrency, data, deployment and operations. Each one pairs explanation with code, diagrams and measurements."
+  >
+    {showDrafts && <p class="label mt-8">{written} of {allTopics.length} topics written</p>}
+  </PageHeader>
+
+  <div class="shell pb-24 lg:pb-32">
+    <div class="grid gap-x-8 lg:grid-cols-12">
+      <ol class="border-t border-line lg:col-span-9 lg:col-start-4" data-reveal-stagger>
+        {
+          topics.map((topic, index) => (
+            <li class="grid gap-x-8 gap-y-3 border-b border-line py-7 md:grid-cols-9">
+              <p class="label pt-1.5 md:col-span-1">{formatIndex(index + 1)}</p>
+              <div class="md:col-span-8">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <h2 class:list={['text-xl leading-snug tracking-tight', topic.articles.length === 0 && 'text-muted']}>
+                    {topic.title}
+                  </h2>
+                  {topic.articles.length === 0 && <DraftBadge label="Planned" />}
+                </div>
+                <p class="mt-2 max-w-2xl text-[0.9375rem] text-muted">{topic.summary}</p>
+                {topic.articles.length > 0 && (
+                  <ul class="mt-5 border-t border-line">
+                    {topic.articles.map((article) => (
+                      <li>
+                        <a
+                          href={deepDivePath(article)}
+                          class="group flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-line py-3.5"
+                        >
+                          <span class="text-accent" aria-hidden="true">
+                            →
+                          </span>
+                          <span class="text-[0.9375rem] transition-colors duration-150 group-hover:text-accent">
+                            {article.data.title}
+                          </span>
+                          {article.data.draft && (
+                            <span class="ml-auto">
+                              <DraftBadge />
+                            </span>
+                          )}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</BaseLayout>

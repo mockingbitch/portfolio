@@ -1,0 +1,14 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import InsightsIndex from '@/components/articles/InsightsIndex.astro';
+import { getInsights } from '@/lib/content';
+
+const insights = await getInsights();
+const title = 'Notes on designing, building and operating software systems.';
+const lead =
+  'Writing on system design, backend engineering, architecture patterns, infrastructure, security and AI agent engineering.';
+---
+
+<BaseLayout title="Insights" description={lead}>
+  <InsightsIndex insights={insights} title={title} lead={lead} />
+</BaseLayout>

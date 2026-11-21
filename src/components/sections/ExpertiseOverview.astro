@@ -1,0 +1,41 @@
+---
+import { domains } from '@/data/expertise';
+import Section from '@/components/layout/Section.astro';
+import ArrowLink from '@/components/ui/ArrowLink.astro';
+import { formatIndex } from '@/lib/format';
+
+interface Props {
+  index?: string;
+}
+---
+
+<Section
+  id="expertise"
+  index={Astro.props.index}
+  label="Expertise"
+  title="Eight engineering domains, one continuous practice — from the API contract down to the cluster it runs on."
+>
+  <div class="grid gap-px border border-line bg-line sm:grid-cols-2 xl:grid-cols-4" data-reveal-stagger>
+    {
+      domains.map((domain, index) => (
+        <article class="group relative flex flex-col bg-bg p-6 sm:p-7" data-spotlight>
+          <p class="label">{formatIndex(index + 1)}</p>
+          <h3 class="mt-6 text-lg tracking-tight">
+            <a
+              href={`/expertise/#${domain.id}`}
+              class="outline-none transition-colors duration-150 after:absolute after:inset-0 group-hover:text-accent focus-visible:text-accent focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-accent"
+            >
+              {domain.title}
+            </a>
+          </h3>
+          <ul class="mt-5 space-y-1.5 border-t border-line pt-4 font-mono text-[0.8125rem] text-muted">
+            {domain.technologies.map((item) => <li>{item}</li>)}
+          </ul>
+        </article>
+      ))
+    }
+  </div>
+  <div class="mt-10">
+    <ArrowLink href="/expertise/">Expertise, with the work behind it</ArrowLink>
+  </div>
+</Section>

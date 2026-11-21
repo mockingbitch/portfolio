@@ -7,6 +7,7 @@ import { profile } from '@/data/profile';
 import Seo from '@/components/layout/Seo.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
+import Motion from '@/components/layout/Motion.astro';
 
 type Props = ComponentProps<typeof Seo>;
 ---
@@ -16,7 +17,7 @@ type Props = ComponentProps<typeof Seo>;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0b0c0e" />
+    <meta name="theme-color" content="#0a0d12" />
     <script is:inline>
       // Apply the stored theme before first paint. Dark is the default.
       (function () {
@@ -36,7 +37,7 @@ type Props = ComponentProps<typeof Seo>;
     <link
       rel="alternate"
       type="application/rss+xml"
-      title={`${profile.name} — Technical Notes`}
+      title={`${profile.name} — Insights`}
       href="/rss.xml"
     />
     <slot name="head" />
@@ -53,5 +54,6 @@ type Props = ComponentProps<typeof Seo>;
       <slot />
     </main>
     <Footer />
+    <Motion />
   </body>
 </html>

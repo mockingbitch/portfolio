@@ -22,13 +22,13 @@ const headingId = `${id}-heading`;
     <div class="lg:col-span-3">
       <p class="label flex gap-3 lg:sticky lg:top-24">
         {index && <span class="text-accent">{index}</span>}
-        <span id={title ? undefined : headingId}>{label}</span>
+        <span id={title ? undefined : headingId} data-scramble>{label}</span>
       </p>
     </div>
     <div class="lg:col-span-9">
       {
         title && (
-          <Heading id={headingId} class="max-w-3xl text-heading">
+          <Heading id={headingId} class="max-w-3xl text-heading" data-reveal>
             {title}
           </Heading>
         )

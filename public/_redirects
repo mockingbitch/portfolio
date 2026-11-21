@@ -1,0 +1,3 @@
+# Routes renamed in the information-architecture refactor.
+/notes /insights/ 301
+/notes/* /insights/:splat 301

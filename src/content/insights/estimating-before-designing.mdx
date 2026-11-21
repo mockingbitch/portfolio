@@ -1,0 +1,101 @@
+---
+title: Estimating before designing
+description: "Ten minutes of order-of-magnitude arithmetic eliminates most candidate architectures and shows which single dimension of a system deserves the design effort."
+category: system-design
+pubDate: 2026-11-21
+draft: false
+---
+
+## Context
+
+Design discussions tend to start with a diagram. Someone draws a queue, someone adds a cache, and the conversation becomes a comparison of technologies. The question that would settle most of it, how much of what and how fast, often comes late or not at all.
+
+Without numbers, two opposite mistakes are equally easy. One is designing for a scale that the product will not reach for years, and paying for that complexity every day in the meantime. The other is missing the one dimension that really is large, and discovering it in production. Both come from the same gap, and a rough estimate closes it.
+
+## The core idea
+
+An estimate for design purposes does not need to be accurate. It needs to be right to within a factor of ten, because architectures change at orders of magnitude and not at percentages. A hundred writes per second and three hundred writes per second lead to the same design. A hundred and a hundred thousand do not.
+
+So the thesis is: **estimate first, to an order of magnitude, and let the numbers remove options before any are drawn.** The estimate also has a second job that is easy to overlook. It records the assumptions the design rests on, so that when one of them stops being true, there is a clear signal to revisit the design.
+
+The quantities worth estimating are few:
+
+- **Throughput**: reads and writes per second, average and peak.
+- **Data volume**: size per record, growth per day, total over the retention period.
+- **Latency budget**: how long a request may take, and how that divides among the hops.
+- **Concurrency**: how many things are in flight at once, which is roughly arrival rate multiplied by duration.
+- **Availability**: how much downtime is acceptable, which decides how much redundancy is worth paying for.
+
+A handful of conversions make the arithmetic quick. A day has 86,400 seconds, which rounds to 100,000 for mental work. One million events per day is therefore about 12 per second. One kilobyte per record at one million records per day is one gigabyte per day.
+
+## In practice
+
+Here is an illustrative estimate, with invented inputs, for an activity log: a service that records user actions and lets users and auditors read them back.
+
+**Assumptions.** 500,000 daily active users. Each performs about 20 recorded actions a day. A record is about 1 KB including its indexes. Records are kept for one year. Reads are rare: perhaps 1 percent of users open their history on a given day, plus occasional audit queries.
+
+**Throughput.**
+
+```text
+writes per day    = 500,000 users x 20 actions      = 10,000,000
+average write/s   = 10,000,000 / 86,400             ~ 116
+peak write/s      = average x 10                    ~ 1,200
+history views/day = 500,000 x 1%                    = 5,000  (well under 1 per second)
+```
+
+**Storage.**
+
+```text
+per day   = 10,000,000 x 1 KB   = 10 GB
+per year  = 10 GB x 365         ~ 3.7 TB
+```
+
+**What the numbers decide.**
+
+The write rate is small. Around 1,200 inserts per second at peak, appended and rarely updated, is well within what a single relational primary can do, particularly when rows are written in batches. That removes sharding, a distributed log and a specialised write-optimised store from consideration. None of them would be solving a problem this system has.
+
+The read rate is negligible, so a cache layer is not needed either.
+
+The storage figure is the interesting one. Several terabytes in a single table is where routine operations become difficult: index rebuilds, backups, restores, and deleting expired rows. That is where the design effort belongs. The table should be partitioned by time from the first day, so that retention is implemented by dropping a partition, which is quick, and not by deleting hundreds of millions of rows, which is not. It is also worth asking whether a full year needs to sit on primary storage, or whether older partitions can move somewhere cheaper.
+
+The concurrency check confirms the picture. If an insert takes about 5 ms, then 1,200 per second means about six in flight at once, so a small connection pool is plenty.
+
+Ten minutes of arithmetic turned "we need a scalable event pipeline" into "one database, a partitioned table, a retention job, and a restore time to keep an eye on". The numbers pointed at a different problem from the one the first diagram would have solved.
+
+```sql
+CREATE TABLE activity_log (
+    id          bigint GENERATED ALWAYS AS IDENTITY,
+    user_id     bigint      NOT NULL,
+    action      text        NOT NULL,
+    detail      jsonb       NOT NULL DEFAULT '{}',
+    occurred_at timestamptz NOT NULL,
+    PRIMARY KEY (id, occurred_at)
+) PARTITION BY RANGE (occurred_at);
+
+CREATE TABLE activity_log_2026_11 PARTITION OF activity_log
+    FOR VALUES FROM ('2026-11-01') TO ('2026-12-01');
+
+-- Retention is a metadata operation, not a mass delete.
+DROP TABLE activity_log_2025_11;
+```
+
+## Where estimates mislead
+
+**Averages hide the peak.** Traffic is not spread evenly over 86,400 seconds. Most of it arrives in a few busy hours, and events such as a campaign or a batch import arrive all at once. A system sized for the average fails at the peak. The multiplier of ten above is itself an assumption and deserves to be written down as one.
+
+**Averages hide the skew.** Twenty actions per user is a mean. In real data a small share of users, tenants or keys usually accounts for a large share of the volume. One large tenant can dominate a partition, one hot key can dominate a cache, and a per-tenant figure can be a hundred times the average. If the design partitions by something, estimate the largest partition and not the typical one.
+
+**Growth is not linear.** Storage accumulates even when traffic is flat. Features that fan out, where one action notifies every follower, multiply instead of adding. A number that is comfortable today may cross an order of magnitude sooner than a straight line suggests.
+
+**The inputs are guesses.** For a new product nobody knows the number of users. The useful response is to estimate a range, find the value at which the design would have to change, and judge how far away that is. If the design holds across the whole plausible range, the uncertainty does not matter.
+
+**Estimates say nothing about contention.** A total of 1,200 writes per second is easy when they are independent and hard when they all update the same row. Arithmetic on totals does not show lock contention, slow queries or a poor index. Those need measurement.
+
+That last point marks the limit of the technique. An estimate chooses a direction; it does not replace a load test or production metrics. I would also not spend long on it for a prototype whose purpose is to find out whether anyone wants the product. There, the cheapest thing that works is the right design, and the estimate is one sentence long.
+
+## Takeaways
+
+- Estimate throughput, volume, latency, concurrency and availability to within a factor of ten before drawing anything.
+- Look for the one number that is large. It shows where the design effort should go, and the small numbers show what can be left simple.
+- Size for the peak and the largest tenant, never the average.
+- Write the assumptions down. They are the conditions under which the design is valid, and the trigger for changing it.

@@ -1,10 +1,55 @@
 ---
 import DiagramRuntime from '@/components/diagrams/DiagramRuntime.astro';
 
-/** Wrapper for rendered MDX. Loads the diagram runtime for ```mermaid blocks. */
+/**
+ * Wrapper for rendered MDX. Adds a copy button to highlighted code blocks and
+ * loads the diagram runtime for ```mermaid blocks.
+ */
 ---
 
-<div class="prose">
+<div class="prose" data-prose>
   <slot />
 </div>
 <DiagramRuntime />
+
+<script>
+  /** Clipboard API first; falls back to a selection-based copy where it is blocked. */
+  async function copyText(text: string): Promise<boolean> {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.append(area);
+      area.select();
+      const copied = document.execCommand('copy');
+      area.remove();
+      return copied;
+    }
+  }
+
+  const blocks = document.querySelectorAll<HTMLPreElement>('[data-prose] pre.astro-code');
+
+  for (const pre of blocks) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'code-block';
+    pre.replaceWith(wrapper);
+    wrapper.append(pre);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'code-copy';
+    button.textContent = 'Copy';
+    button.setAttribute('aria-label', 'Copy code to clipboard');
+
+    button.addEventListener('click', async () => {
+      button.textContent = (await copyText(pre.textContent ?? '')) ? 'Copied' : 'Failed';
+      window.setTimeout(() => (button.textContent = 'Copy'), 1600);
+    });
+
+    wrapper.append(button);
+  }
+</script>

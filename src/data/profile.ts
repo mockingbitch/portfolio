@@ -1,32 +1,40 @@
 /**
  * Personal profile — the single source of truth for who this site is about.
- * Values marked TODO are placeholders. Replace them before publishing.
  */
 export const profile = {
-  /** TODO: replace with your name. */
-  name: 'Your Name',
+  name: 'Tran Quang Phong',
   /** Short wordmark shown in the header. Defaults to the name. */
-  wordmark: 'Your Name',
-  positioning: ['Backend Engineer', 'Platform Architect', 'Product-minded Technologist'],
+  wordmark: 'Tran Quang Phong',
+  /** Used as the schema.org job title. */
+  title: 'Senior Software Engineer',
+  positioning: ['Senior Software Engineer', 'Solution Architect', 'System Design'],
   headline: {
-    primary: 'Engineering systems that scale.',
-    secondary: 'Building products that matter.',
+    primary: 'Building Scalable Systems.',
+    secondary: 'Engineering Better Solutions.',
   },
   statement:
-    'I work at the intersection of backend engineering, system architecture, and infrastructure — turning complex technical challenges into reliable production systems.',
-  intro:
-    'Backend-focused engineer working primarily in Go and PHP/Laravel, with a strong interest in how systems behave once they leave the editor: how they are deployed, secured, observed and operated.',
-  /** Shown in the hero as "Current focus". */
-  focus: [
-    'Distributed systems & API architecture',
-    'Platform and infrastructure engineering',
-    'Security architecture & service identity',
-    'Product engineering & technical decisions',
+    'I design and build scalable software systems, distributed architectures, and infrastructure-aware platforms. Focused on backend engineering, system reliability, security, performance, and engineering excellence.',
+  /** Core professional domains, shown in the hero. */
+  domains: [
+    'Backend Engineering',
+    'System Architecture',
+    'Distributed Systems',
+    'Cloud Infrastructure',
+    'Security Engineering',
+    'AI & Agent Engineering',
+    'Technical Leadership',
   ],
-  /** TODO: replace with your contact address. */
-  email: 'hello@example.com',
-  /** Optional location line, e.g. "Ho Chi Minh City · UTC+7". Leave empty to hide. */
-  location: '',
+  email: 'jarvis.phongtran@gmail.com',
+  /** One-paragraph professional summary, shown on the About page. */
+  summary:
+    'Senior fullstack developer and technical leader with more than five years of hands-on experience designing, building and operating scalable backend systems and product platforms for international clients and product companies.',
+  /** Downloadable resume, served from /public. Set `href` to '' to hide the links. */
+  resume: {
+    href: '/CV-Tran-Quang-Phong.pdf',
+    label: 'Resume',
+  },
+  /** Optional location line. Leave empty to hide. */
+  location: 'Hanoi, Vietnam',
   availability: {
     /** Set to false to hide the status indicator. */
     enabled: true,

@@ -1,15 +1,20 @@
 ---
-/** Banner shown at the top of unpublished case studies and notes. */
+/** Banner shown at the top of unpublished entries. */
 interface Props {
-  kind: 'case study' | 'note' | 'system design study' | 'decision record';
+  kind: 'case study' | 'insight' | 'system design study' | 'deep dive';
+  /** Replaces the default explanation, e.g. for a complete draft awaiting review. */
+  message?: string;
 }
 
-const { kind } = Astro.props;
+const { kind, message } = Astro.props;
 ---
 
 <aside class="border border-dashed border-line-strong px-5 py-4 text-sm text-muted" aria-label="Draft notice">
   <p>
     <span class="label mr-3 text-fg">Draft</span>
-    This {kind} is an unpublished outline. Sections marked “to be written” are placeholders, not finished content.
+    {
+      message ??
+        `This ${kind} is an unpublished outline. Sections marked “to be written” are placeholders, not finished content.`
+    }
   </p>
 </aside>

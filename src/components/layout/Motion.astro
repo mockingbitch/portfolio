@@ -1,0 +1,103 @@
+---
+/**
+ * Site-wide motion, loaded once from BaseLayout.
+ *
+ *  - Scroll reveal:  [data-reveal] fades up when it enters the viewport;
+ *                    [data-reveal-stagger] does the same for each child, in sequence.
+ *  - Decode effect:  [data-scramble] text resolves from random glyphs when revealed.
+ *  - Spotlight:      [data-spotlight] tracks the pointer for a soft accent glow.
+ *
+ * Everything is progressive enhancement. Content is only hidden once this
+ * script has run (the `motion-ready` class), so nothing depends on JavaScript,
+ * and all of it is skipped when the visitor prefers reduced motion.
+ */
+---
+
+<script>
+  const root = document.documentElement;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Decode effect ---------------------------------------------------- */
+  const GLYPHS = '01<>/[]{}=+*#_';
+
+  function scramble(element: HTMLElement) {
+    const finalText = element.textContent ?? '';
+    if (!finalText.trim() || element.children.length > 0) return;
+
+    // Screen readers get the real text; the animated copy is hidden from them.
+    const label = document.createElement('span');
+    label.className = 'sr-only';
+    label.textContent = finalText;
+    const visual = document.createElement('span');
+    visual.setAttribute('aria-hidden', 'true');
+    element.replaceChildren(label, visual);
+
+    const duration = Math.min(900, 280 + finalText.length * 14);
+    const start = performance.now();
+
+    const frame = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const settled = Math.floor(progress * finalText.length);
+      let output = finalText.slice(0, settled);
+      for (let i = settled; i < finalText.length; i += 1) {
+        const char = finalText[i] ?? '';
+        output += /\s/.test(char) ? char : (GLYPHS[Math.floor(Math.random() * GLYPHS.length)] ?? char);
+      }
+      visual.textContent = output;
+      if (progress < 1) requestAnimationFrame(frame);
+      else element.textContent = finalText;
+    };
+    requestAnimationFrame(frame);
+  }
+
+  /* ---- Scroll reveal ---------------------------------------------------- */
+  // Hidden states only apply once `motion-ready` is set, which happens last. If anything
+  // below throws, the class is never added (or is removed) and all content stays visible.
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    try {
+    for (const group of document.querySelectorAll<HTMLElement>('[data-reveal-stagger]')) {
+      Array.from(group.children).forEach((child, index) => {
+        if (!(child instanceof HTMLElement)) return;
+        child.dataset.reveal = '';
+        child.style.setProperty('--reveal-delay', `${Math.min(index, 5) * 40}ms`);
+      });
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const element = entry.target as HTMLElement;
+          observer.unobserve(element);
+          element.classList.add('is-visible');
+          if (element.dataset.reveal !== undefined) {
+            // Drop the stagger delay afterwards so it never slows a later transition.
+            element.addEventListener('transitionend', () => element.style.removeProperty('--reveal-delay'), {
+              once: true,
+            });
+          }
+          if (element.dataset.scramble !== undefined) scramble(element);
+        }
+      },
+      // Trigger as soon as an element is a little way into the viewport.
+      { rootMargin: '0px 0px -10% 0px', threshold: 0 },
+    );
+
+    for (const element of document.querySelectorAll('[data-reveal], [data-scramble]')) observer.observe(element);
+    root.classList.add('motion-ready');
+    } catch {
+      root.classList.remove('motion-ready');
+    }
+  }
+
+  /* ---- Pointer spotlight ------------------------------------------------- */
+  if (!reduceMotion && window.matchMedia('(hover: hover)').matches) {
+    for (const element of document.querySelectorAll<HTMLElement>('[data-spotlight]')) {
+      element.addEventListener('pointermove', (event) => {
+        const rect = element.getBoundingClientRect();
+        element.style.setProperty('--spot-x', `${event.clientX - rect.left}px`);
+        element.style.setProperty('--spot-y', `${event.clientY - rect.top}px`);
+      });
+    }
+  }
+</script>

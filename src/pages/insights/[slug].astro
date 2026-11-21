@@ -1,0 +1,50 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import { mdxComponents } from '@/components/mdx';
+import { getInsightCategory } from '@/data/insightCategories';
+import { getInsights, insightCategoryPath, publishedDate, type Insight } from '@/lib/content';
+import { formatDate } from '@/lib/format';
+
+export async function getStaticPaths() {
+  const insights = await getInsights();
+  return insights.map((insight) => ({ params: { slug: insight.id }, props: { insight } }));
+}
+
+interface Props {
+  insight: Insight;
+}
+
+const { insight } = Astro.props;
+const { data } = insight;
+const category = getInsightCategory(data.category);
+const { Content, headings } = await render(insight);
+const published = publishedDate(data);
+---
+
+<ArticleLayout
+  title={data.title}
+  description={data.description}
+  back={{ href: '/insights/', label: 'All insights' }}
+  headings={headings}
+  draft={data.draft}
+  draftKind="insight"
+  publishedTime={published}
+>
+  <Fragment slot="meta">
+    <p class="label">
+      <a href={insightCategoryPath(category.slug)} class="text-accent hover:underline">{category.label}</a>
+    </p>
+    <p class="label">
+      {published ? <time datetime={published.toISOString()}>{formatDate(published)}</time> : 'Unpublished draft'}
+    </p>
+    {
+      published && data.updatedDate && (
+        <p class="label">
+          Updated <time datetime={data.updatedDate.toISOString()}>{formatDate(data.updatedDate)}</time>
+        </p>
+      )
+    }
+  </Fragment>
+  <Content components={mdxComponents} />
+</ArticleLayout>

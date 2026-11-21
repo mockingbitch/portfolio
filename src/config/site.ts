@@ -6,18 +6,19 @@ export const site = {
   /** Production origin, without a trailing slash. Used for canonical URLs, sitemap, RSS and Open Graph. */
   url: 'https://example.com',
   /** Appended to every page title. */
-  titleSuffix: 'Engineering Portfolio',
+  titleSuffix: 'Software Engineer & Solution Architect',
   /** Default meta description, used when a page does not provide one. */
   description:
-    'Backend engineering, system architecture and infrastructure — turning complex technical challenges into reliable production systems.',
+    'Senior software engineer and solution architect — designing and building scalable software systems, distributed architectures and infrastructure-aware platforms.',
   locale: 'en',
   /** Default Open Graph image, relative to /public. Regenerate with `npm run og`. */
   ogImage: '/og-default.png',
   /**
-   * Draft notes and draft case studies are always visible in `astro dev`.
-   * When true they are also built for production, clearly labelled as drafts,
-   * marked `noindex`, and left out of the sitemap and RSS feed.
-   * Set to false to hide draft notes from the production site entirely.
+   * Drafts (every entry with `draft: true`) and data entries flagged
+   * `placeholder: true` are always visible in `astro dev`.
+   * When false, they are left out of the production build entirely.
+   * When true, they are built for production too — labelled as drafts, marked
+   * `noindex`, and excluded from the sitemap and RSS feed.
    */
-  showDraftsInProduction: true,
+  showDraftsInProduction: false,
 } as const;

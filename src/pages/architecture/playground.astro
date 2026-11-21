@@ -3,7 +3,10 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHeader from '@/components/layout/PageHeader.astro';
 import ArrowLink from '@/components/ui/ArrowLink.astro';
 import DiagramExplorer from '@/components/diagrams/DiagramExplorer.tsx';
-import { diagrams } from '@/data/diagrams';
+import { diagrams as allDiagrams } from '@/data/diagrams';
+import { withoutHiddenDrafts } from '@/lib/content';
+
+const diagrams = withoutHiddenDrafts(allDiagrams);
 ---
 
 <BaseLayout
@@ -42,7 +45,7 @@ import { diagrams } from '@/data/diagrams';
     </noscript>
 
     <div class="mt-14 border-t border-line pt-6">
-      <ArrowLink href="/architecture/" direction="back">Architecture</ArrowLink>
+      <ArrowLink href="/architecture/" direction="back">Architecture Lab</ArrowLink>
     </div>
   </div>
 </BaseLayout>

@@ -1,0 +1,90 @@
+---
+title: Designing APIs that survive change
+description: "An API contract is a promise about behaviour, so the design goal is to make additive change free and breaking change rare, explicit and scheduled."
+category: backend-engineering
+pubDate: 2026-11-21
+draft: false
+# pubDate: 2026-01-15   (required once draft is false)
+---
+
+## Context
+
+This note is about HTTP APIs with consumers the provider does not deploy: a browser application on its own release cycle, a partner integration written once and rarely touched, a CI job pinned to an old client. Inside a single deployable, a change to a function signature is caught by the compiler and shipped atomically. Across a network boundary neither is true. The old client keeps running after the new server is live, and nobody is told when it breaks.
+
+The requirements will change regardless. What the design controls is whether that change costs a field added on a Tuesday afternoon or a coordinated migration across teams.
+
+## A contract is a promise about behaviour
+
+The schema is the visible part of a contract: paths, fields, types, status codes. Consumers depend on much more than that. They depend on the default sort order, on which fields are never null, on whether a retry creates a duplicate, on the error code returned for a missing record, on how long a request normally takes. Anything observable will eventually be relied on by someone, whether or not it was documented.
+
+That leads to the working definition I use: **a change is breaking if a correct, existing client can stop working because of it.** The definition is about clients, not about the diff. Renaming a field is obviously breaking. So is tightening validation on input that used to be accepted, changing a default page size that a client never set explicitly, or adding a value to an enum that the client switches on exhaustively.
+
+Two consequences follow:
+
+- **Decide what is promised, and say so.** An explicit sort order, documented nullability and a stated error format shrink the set of accidental promises.
+- **Keep the promise small.** Every field exposed is a field to support. Returning the database row because it is convenient turns the table layout into public API.
+
+## Additive by default
+
+Most change can be absorbed without a new version if both sides follow a few rules.
+
+The provider adds, and does not remove or repurpose. New optional request fields, new response fields and new endpoints are safe. Changing the meaning or type of an existing field is not, even when the name stays the same.
+
+The consumer reads tolerantly: ignore unknown fields, and treat unknown enum values as a default case instead of an error. This is worth writing into the API documentation, because a strict client turns the provider's safe change into an outage.
+
+When a field does have to be replaced, the sequence is expand, migrate, contract. Add the new field alongside the old one, populate both, move consumers, and only then remove the old one.
+
+```go
+// InvoiceResponse is the body returned for a single invoice.
+// Fields are only ever added. Removing or retyping one needs a new version.
+type InvoiceResponse struct {
+	ID       string `json:"id"`
+	Currency string `json:"currency"`
+
+	// Total is a decimal string such as "25431.50", never a JSON number,
+	// so no client parses it into a float and loses precision.
+	Total string `json:"total"`
+
+	// Deprecated: replaced by IssuedAt. Still populated until the
+	// announced removal date.
+	IssueDate string `json:"issue_date"`
+
+	// Added later. Old clients ignore them; new clients can rely on them.
+	IssuedAt time.Time  `json:"issued_at"`
+	DueAt    *time.Time `json:"due_at,omitempty"`
+}
+```
+
+Some decisions are cheap on the first day and expensive afterwards, so I make them before the first consumer exists:
+
+- **Return an object at the top level**, never a bare array. An object can gain a `next_cursor` field later; an array cannot.
+- **Paginate from the start**, with an opaque cursor. Adding pagination to an endpoint that used to return everything is a breaking change.
+- **Use one error shape everywhere**, with a stable machine-readable code separate from the human-readable message. RFC 9457 problem details is a reasonable default. Clients should branch on the code, never on the message text.
+- **Accept an idempotency key on writes that are not naturally idempotent**, so a client can retry a timeout without guessing.
+
+## Making the promise checkable
+
+A contract that lives only in a wiki drifts. I prefer contract-first: the OpenAPI document is written and reviewed before the handler, and the implementation is tested against it.
+
+Three checks do most of the work. A diff of the specification in CI fails the build when a change is breaking by the rules above, which moves the argument to review time. Contract tests run the real handlers and validate every response against the schema, so the document cannot say one thing while the code does another. And for the consumers that matter most, a small set of recorded requests from the oldest supported client keeps yesterday's behaviour under test.
+
+## When a breaking change is unavoidable
+
+Sometimes the model was wrong and has to change. Then the change should be explicit and scheduled:
+
+- Version at a coarse grain. A major version in the path (`/v1`, `/v2`) is blunt but visible in every log line and every proxy rule.
+- Run both versions side by side, ideally with the old one implemented as a thin translation onto the new model so there is one set of business logic.
+- Announce the end date in the response itself with the `Deprecation` and `Sunset` headers, and measure who still calls the old version. Removing an endpoint without knowing its remaining traffic is a guess.
+
+## Trade-offs
+
+Compatibility is not free. Deprecated fields accumulate, every old version is code to test, and additive-only evolution can leave an API with three ways to express the same thing. A contract-first workflow also adds a step before any code is written, which feels slow during early exploration.
+
+I would not apply all of this when the provider and the only consumer ship together from one repository; a shared type and an atomic deploy are simpler than a compatibility policy. I would also keep an API explicitly unstable, and label it so, while the domain model is still being discovered. Freezing a wrong model early costs more than breaking a handful of known callers. The discipline starts to pay the moment a consumer exists that cannot be redeployed on demand.
+
+## Takeaways
+
+- A contract covers every behaviour a client can observe. Decide which behaviours are promised and keep that set small.
+- Design so that the common change is additive: object envelopes, cursors, a single error shape, tolerant readers.
+- Put the contract in a machine-readable document and let CI enforce it, so breaking changes are caught in review.
+- When a break is necessary, version coarsely, run both, publish a sunset date and watch the old traffic reach zero before removing anything.

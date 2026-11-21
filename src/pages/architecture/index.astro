@@ -2,30 +2,26 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHeader from '@/components/layout/PageHeader.astro';
 import Section from '@/components/layout/Section.astro';
+import EntryList from '@/components/articles/EntryList.astro';
+import ArrowLink from '@/components/ui/ArrowLink.astro';
 import ButtonLink from '@/components/ui/ButtonLink.astro';
 import EntryRow from '@/components/ui/EntryRow.astro';
-import { diagrams } from '@/data/diagrams';
-import {
-  decisionLabel,
-  decisionPath,
-  getDecisions,
-  getSystemDesignStudies,
-  systemDesignPath,
-} from '@/lib/content';
+import { diagrams as allDiagrams } from '@/data/diagrams';
+import { getSystemDesignStudies, publishedDate, systemDesignPath, withoutHiddenDrafts } from '@/lib/content';
 import { formatDate, formatIndex } from '@/lib/format';
 
-const [studies, decisions] = await Promise.all([getSystemDesignStudies(), getDecisions()]);
-const emptyClass = 'border-y border-line py-10 text-muted';
+const studies = await getSystemDesignStudies();
+const diagrams = withoutHiddenDrafts(allDiagrams);
 ---
 
 <BaseLayout
-  title="Architecture"
-  description="Interactive architecture diagrams, system design case studies and engineering decision records."
+  title="Architecture Lab"
+  description="System design studies and interactive architecture diagrams: requirements, capacity, components, contracts, failure scenarios and trade-offs."
 >
   <PageHeader
-    label="Architecture"
-    title="How systems are shaped, and why they are shaped that way."
-    lead="Diagrams you can explore, design problems worked through from requirements to trade-offs, and the decision records behind the choices."
+    label="Architecture Lab"
+    title="System design, worked in the open."
+    lead="Design problems taken from requirements and capacity estimates through architecture, contracts and schemas, to failure scenarios and trade-offs — with diagrams you can explore."
   />
 
   <Section
@@ -52,52 +48,27 @@ const emptyClass = 'border-y border-line py-10 text-muted';
     id="system-design"
     index="02"
     label="System design"
-    title="Design problems, worked from requirements through to failure modes."
+    title="Design studies, each following the same thirteen steps."
   >
-    {
-      studies.length > 0 ? (
-        <div class="border-t border-line">
-          {studies.map((study) => (
+    <EntryList empty={studies.length === 0} emptyMessage="The first studies are being written. The playground above is live.">
+      {
+        studies.map((study) => {
+          const published = publishedDate(study.data);
+          return (
             <EntryRow
               href={systemDesignPath(study)}
               title={study.data.title}
               description={study.data.summary}
-              marker={!study.data.draft && study.data.pubDate ? formatDate(study.data.pubDate) : 'Unpublished'}
+              marker={published ? formatDate(published) : 'Unpublished'}
               meta={study.data.topics.join(' · ')}
               draft={study.data.draft}
             />
-          ))}
-        </div>
-      ) : (
-        <p class={emptyClass}>No studies published yet.</p>
-      )
-    }
-  </Section>
-
-  <Section
-    id="decisions"
-    index="03"
-    label="Decision records"
-    title="Short records of what was decided, what else was considered, and what it cost."
-  >
-    {
-      decisions.length > 0 ? (
-        <div class="border-t border-line">
-          {decisions.map((decision) => (
-            <EntryRow
-              href={decisionPath(decision)}
-              title={decision.data.title}
-              description={decision.data.summary}
-              marker={decisionLabel(decision)}
-              meta={`${decision.data.status} · ${decision.data.scope}`}
-              draft={decision.data.draft}
-              draftLabel="Template"
-            />
-          ))}
-        </div>
-      ) : (
-        <p class={emptyClass}>No decision records published yet.</p>
-      )
-    }
+          );
+        })
+      }
+    </EntryList>
+    <div class="mt-10 flex flex-wrap gap-x-8 gap-y-3">
+      <ArrowLink href="/deep-dives/">Engineering deep dives</ArrowLink>
+    </div>
   </Section>
 </BaseLayout>

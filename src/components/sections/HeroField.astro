@@ -1,0 +1,200 @@
+---
+/**
+ * Animated backdrop for the hero: a slowly drifting network of nodes with
+ * signals travelling along its links. Purely decorative and hidden from
+ * assistive technology. It pauses when off-screen or when the tab is hidden,
+ * and renders a single still frame when the visitor prefers reduced motion.
+ */
+---
+
+<canvas class="hero-field" data-hero-field aria-hidden="true"></canvas>
+
+<script>
+  interface Node {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+  }
+  interface Pulse {
+    from: Node;
+    to: Node;
+    progress: number;
+    speed: number;
+  }
+
+  const LINK_DISTANCE = 150;
+  const POINTER_DISTANCE = 190;
+
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-field]');
+  const context = canvas?.getContext('2d');
+  const host = canvas?.parentElement;
+
+  if (canvas && context && host) {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let width = 0;
+    let height = 0;
+    let nodes: Node[] = [];
+    let pulses: Pulse[] = [];
+    let pointer: { x: number; y: number } | null = null;
+    let colors = { line: '#888', node: '#aaa', accent: '#4fd6c4' };
+    let frameId = 0;
+    let visible = true;
+    let lastPulse = 0;
+
+    const readColors = () => {
+      const style = getComputedStyle(document.documentElement);
+      colors = {
+        line: style.getPropertyValue('--subtle').trim() || colors.line,
+        node: style.getPropertyValue('--muted').trim() || colors.node,
+        accent: style.getPropertyValue('--accent').trim() || colors.accent,
+      };
+    };
+
+    const resize = () => {
+      const rect = host.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+      const count = Math.max(18, Math.min(72, Math.round((width * height) / 21000)));
+      nodes = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.28,
+        vy: (Math.random() - 0.5) * 0.28,
+      }));
+      pulses = [];
+    };
+
+    const draw = (time: number) => {
+      context.clearRect(0, 0, width, height);
+      const links: [Node, Node][] = [];
+
+      for (const node of nodes) {
+        node.x += node.vx;
+        node.y += node.vy;
+        if (node.x < 0 || node.x > width) node.vx *= -1;
+        if (node.y < 0 || node.y > height) node.vy *= -1;
+      }
+
+      context.lineWidth = 1;
+      context.strokeStyle = colors.line;
+      for (let i = 0; i < nodes.length; i += 1) {
+        const a = nodes[i];
+        if (!a) continue;
+        for (let j = i + 1; j < nodes.length; j += 1) {
+          const b = nodes[j];
+          if (!b) continue;
+          const distance = Math.hypot(a.x - b.x, a.y - b.y);
+          if (distance > LINK_DISTANCE) continue;
+          links.push([a, b]);
+          context.globalAlpha = (1 - distance / LINK_DISTANCE) * 0.26;
+          context.beginPath();
+          context.moveTo(a.x, a.y);
+          context.lineTo(b.x, b.y);
+          context.stroke();
+        }
+      }
+
+      // Links from the pointer to nearby nodes.
+      if (pointer) {
+        context.strokeStyle = colors.accent;
+        for (const node of nodes) {
+          const distance = Math.hypot(node.x - pointer.x, node.y - pointer.y);
+          if (distance > POINTER_DISTANCE) continue;
+          context.globalAlpha = (1 - distance / POINTER_DISTANCE) * 0.5;
+          context.beginPath();
+          context.moveTo(pointer.x, pointer.y);
+          context.lineTo(node.x, node.y);
+          context.stroke();
+        }
+      }
+
+      context.fillStyle = colors.node;
+      context.globalAlpha = 0.55;
+      for (const node of nodes) {
+        context.beginPath();
+        context.arc(node.x, node.y, 1.4, 0, Math.PI * 2);
+        context.fill();
+      }
+
+      // Signals travelling along links.
+      if (time - lastPulse > 520 && links.length > 0 && pulses.length < 7) {
+        const link = links[Math.floor(Math.random() * links.length)];
+        if (link) {
+          const [from, to] = Math.random() < 0.5 ? link : [link[1], link[0]];
+          pulses.push({ from, to, progress: 0, speed: 0.012 + Math.random() * 0.012 });
+          lastPulse = time;
+        }
+      }
+
+      context.fillStyle = colors.accent;
+      context.shadowColor = colors.accent;
+      context.shadowBlur = 10;
+      pulses = pulses.filter((pulse) => {
+        pulse.progress += pulse.speed;
+        if (pulse.progress >= 1) return false;
+        const x = pulse.from.x + (pulse.to.x - pulse.from.x) * pulse.progress;
+        const y = pulse.from.y + (pulse.to.y - pulse.from.y) * pulse.progress;
+        context.globalAlpha = Math.sin(pulse.progress * Math.PI);
+        context.beginPath();
+        context.arc(x, y, 2, 0, Math.PI * 2);
+        context.fill();
+        return true;
+      });
+      context.shadowBlur = 0;
+      context.globalAlpha = 1;
+    };
+
+    const loop = (time: number) => {
+      draw(time);
+      frameId = requestAnimationFrame(loop);
+    };
+
+    const start = () => {
+      if (reduceMotion || frameId || !visible || document.hidden) return;
+      frameId = requestAnimationFrame(loop);
+    };
+    const stop = () => {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+    };
+
+    readColors();
+    resize();
+    draw(0);
+
+    new ResizeObserver(() => {
+      resize();
+      draw(0);
+    }).observe(host);
+
+    new IntersectionObserver((entries) => {
+      visible = entries.some((entry) => entry.isIntersecting);
+      if (visible) start();
+      else stop();
+    }).observe(host);
+
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+
+    // Follow theme changes.
+    new MutationObserver(() => {
+      readColors();
+      draw(0);
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    if (!reduceMotion) {
+      host.addEventListener('pointermove', (event) => {
+        const rect = host.getBoundingClientRect();
+        pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      });
+      host.addEventListener('pointerleave', () => (pointer = null));
+    }
+
+    start();
+  }
+</script>

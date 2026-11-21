@@ -1,0 +1,25 @@
+---
+import EntryRow from '@/components/ui/EntryRow.astro';
+import { getInsightCategory } from '@/data/insightCategories';
+import { insightPath, publishedDate, type Insight } from '@/lib/content';
+import { formatDate } from '@/lib/format';
+
+interface Props {
+  insight: Insight;
+  as?: 'h2' | 'h3';
+}
+
+const { insight, as = 'h3' } = Astro.props;
+const { data } = insight;
+const published = publishedDate(data);
+---
+
+<EntryRow
+  href={insightPath(insight)}
+  title={data.title}
+  description={data.description}
+  marker={published ? formatDate(published) : 'Unpublished'}
+  meta={getInsightCategory(data.category).label}
+  draft={data.draft}
+  as={as}
+/>

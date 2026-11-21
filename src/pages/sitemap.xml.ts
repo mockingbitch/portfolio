@@ -1,51 +1,59 @@
 import type { APIRoute } from 'astro';
 import { site } from '@/config/site';
-import { noteCategories } from '@/data/noteCategories';
+import { insightCategories } from '@/data/insightCategories';
 import {
-  decisionPath,
-  getDecisions,
+  deepDivePath,
+  getDeepDives,
   getProjects,
-  getPublishedNotes,
+  getPublishedInsights,
   getSystemDesignStudies,
-  noteCategoryPath,
-  notePath,
+  insightCategoryPath,
+  insightPath,
   projectPath,
   systemDesignPath,
 } from '@/lib/content';
 
+const staticPaths = [
+  '/',
+  '/about/',
+  '/expertise/',
+  '/projects/',
+  '/architecture/',
+  '/architecture/playground/',
+  '/deep-dives/',
+  '/leadership/',
+  '/insights/',
+  '/open-source/',
+  '/contact/',
+];
+
 /**
  * Hand-rolled sitemap so indexability stays in step with the content model:
- * draft case studies, draft notes and empty categories are left out.
+ * drafts of every kind and empty categories are left out.
  */
 export const GET: APIRoute = async ({ site: origin }) => {
-  const [projects, notes, studies, decisions] = await Promise.all([
+  const [projects, studies, deepDives, insights] = await Promise.all([
     getProjects(),
-    getPublishedNotes(),
     getSystemDesignStudies(),
-    getDecisions(),
+    getDeepDives(),
+    getPublishedInsights(),
   ]);
+  const published = <T extends { data: { draft: boolean } }>(entries: T[]) => entries.filter((entry) => !entry.data.draft);
 
   const entries: { path: string; lastmod?: Date }[] = [
-    { path: '/' },
-    { path: '/about/' },
-    { path: '/projects/' },
-    { path: '/architecture/' },
-    { path: '/architecture/playground/' },
-    { path: '/notes/' },
-    { path: '/contact/' },
-    ...projects.filter((project) => !project.data.draft).map((project) => ({ path: projectPath(project) })),
-    ...studies
-      .filter((study) => !study.data.draft)
-      .map((study) => ({ path: systemDesignPath(study), lastmod: study.data.pubDate })),
-    ...decisions
-      .filter((decision) => !decision.data.draft)
-      .map((decision) => ({ path: decisionPath(decision), lastmod: decision.data.date })),
-    ...noteCategories
-      .filter((category) => notes.some((note) => note.data.category === category.slug))
-      .map((category) => ({ path: noteCategoryPath(category.slug) })),
-    ...notes.map((note) => ({
-      path: notePath(note),
-      lastmod: note.data.updatedDate ?? note.data.pubDate,
+    ...staticPaths.map((path) => ({ path })),
+    ...projects.filter((entry) => entry.data.status === 'published').map((entry) => ({ path: projectPath(entry) })),
+    ...published(studies).map((entry) => ({ path: systemDesignPath(entry), lastmod: entry.data.pubDate })),
+    ...published(deepDives).map((entry) => ({
+      path: deepDivePath(entry),
+      lastmod: entry.data.updatedDate ?? entry.data.pubDate,
+    })),
+    ...insightCategories
+      .filter((category) => insights.some((insight) => insight.data.category === category.slug))
+      .map((category) => ({ path: insightCategoryPath(category.slug) })),
+    ...insights.map((entry) => ({
+      path: insightPath(entry),
+      lastmod: entry.data.updatedDate ?? entry.data.pubDate,
     })),
   ];
 

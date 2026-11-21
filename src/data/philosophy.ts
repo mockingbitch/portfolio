@@ -31,4 +31,45 @@ export const philosophy = {
         'Complexity has to earn its place. I reach for distribution, abstraction and new tooling when the problem demands it — not before.',
     },
   ],
+  /**
+   * Technical interests, shown on the About page.
+   * TODO: these are drawn from the project list; adjust to what you are actually exploring.
+   */
+  interests: [
+    {
+      title: 'Agent orchestration and tool access',
+      description: 'How AI agents call tools safely: identity, authorization and execution across service boundaries.',
+    },
+    {
+      title: 'Workload identity',
+      description: 'Replacing network trust with verifiable identity — certificates, short-lived credentials and policy.',
+    },
+    {
+      title: 'Time, scheduling and consistency',
+      description: 'Systems where when something takes effect matters as much as what changes.',
+    },
+    {
+      title: 'Infrastructure-aware application design',
+      description: 'Writing services with the runtime, the network and the deployment pipeline in mind from the start.',
+    },
+  ],
+  /** How I work with other people, shown on the About page. */
+  collaboration: [
+    {
+      title: 'Write it down',
+      description: 'Decisions, trade-offs and context belong in documents, not in memory. A written record lets a team disagree productively and revisit choices later.',
+    },
+    {
+      title: 'Make the reasoning reviewable',
+      description: 'A proposal should show the options that were rejected and why. People can only challenge reasoning they can see.',
+    },
+    {
+      title: 'Raise the floor, not just the ceiling',
+      description: 'Standards, templates and review habits that help every engineer ship well matter more than one impressive component.',
+    },
+    {
+      title: 'Stay close to the code',
+      description: 'Architecture that is not informed by implementation drifts. Staying hands-on keeps design decisions honest.',
+    },
+  ],
 } as const;

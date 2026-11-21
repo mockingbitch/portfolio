@@ -1,0 +1,19 @@
+---
+/** Wraps a list of <EntryRow> elements, with an empty state. */
+interface Props {
+  empty: boolean;
+  emptyMessage?: string;
+}
+
+const { empty, emptyMessage = 'Nothing published here yet.' } = Astro.props;
+---
+
+{
+  empty ? (
+    <p class="border-y border-line py-10 text-muted">{emptyMessage}</p>
+  ) : (
+    <div class="border-t border-line" data-reveal-stagger>
+      <slot />
+    </div>
+  )
+}

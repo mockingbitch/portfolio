@@ -1,5 +1,5 @@
 ---
-import { navigation } from '@/data/navigation';
+import { footerNavigation } from '@/data/navigation';
 import { profile } from '@/data/profile';
 import { social } from '@/data/social';
 
@@ -8,28 +8,30 @@ const linkClass = 'text-sm text-muted transition-colors hover:text-fg';
 ---
 
 <footer class="border-t border-line">
-  <div class="shell grid gap-10 py-14 md:grid-cols-12">
-    <div class="md:col-span-6">
+  <div class="shell grid gap-x-8 gap-y-10 py-14 sm:grid-cols-2 lg:grid-cols-12">
+    <div class="sm:col-span-2 lg:col-span-4">
       <p class="text-[0.9375rem] font-medium tracking-tight">{profile.name}</p>
-      <p class="mt-2 max-w-sm text-sm text-muted">{profile.positioning.join(' · ')}</p>
+      <p class="mt-2 max-w-xs text-sm text-muted">{profile.positioning.join(' · ')}</p>
     </div>
 
-    <nav aria-label="Footer" class="md:col-span-3">
-      <p class="label">Site</p>
-      <ul class="mt-4 space-y-2.5">
-        {
-          navigation.map((item) => (
-            <li>
-              <a href={item.href} class={linkClass}>
-                {item.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
+    {
+      footerNavigation.map((group) => (
+        <nav aria-label={group.title} class="lg:col-span-2">
+          <p class="label">{group.title}</p>
+          <ul class="mt-4 space-y-2.5">
+            {group.items.map((item) => (
+              <li>
+                <a href={item.href} class={linkClass}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
 
-    <div class="md:col-span-3">
+    <div class="lg:col-span-2">
       <p class="label">Elsewhere</p>
       <ul class="mt-4 space-y-2.5">
         {
@@ -42,6 +44,15 @@ const linkClass = 'text-sm text-muted transition-colors hover:text-fg';
           ))
         }
         <li><a href={`mailto:${profile.email}`} class={linkClass}>Email</a></li>
+        {
+          profile.resume.href && (
+            <li>
+              <a href={profile.resume.href} class={linkClass} download>
+                {profile.resume.label}
+              </a>
+            </li>
+          )
+        }
         <li><a href="/rss.xml" class={linkClass}>RSS</a></li>
       </ul>
     </div>

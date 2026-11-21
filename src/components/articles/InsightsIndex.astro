@@ -1,0 +1,46 @@
+---
+import PageHeader from '@/components/layout/PageHeader.astro';
+import EntryList from '@/components/articles/EntryList.astro';
+import InsightRow from '@/components/articles/InsightRow.astro';
+import PillNav from '@/components/articles/PillNav.astro';
+import ArrowLink from '@/components/ui/ArrowLink.astro';
+import { insightCategories } from '@/data/insightCategories';
+import { insightCategoryPath, type Insight } from '@/lib/content';
+
+/** Shared body of the insights index and the per-category listings. */
+interface Props {
+  insights: Insight[];
+  title: string;
+  lead: string;
+  activeCategory?: string;
+}
+
+const { insights, title, lead, activeCategory } = Astro.props;
+const categories = [
+  { label: 'All', href: '/insights/', current: activeCategory === undefined },
+  ...insightCategories.map((category) => ({
+    label: category.label,
+    href: insightCategoryPath(category.slug),
+    current: activeCategory === category.slug,
+  })),
+];
+---
+
+<PageHeader label="Insights" title={title} lead={lead} />
+
+<div class="shell pb-24 lg:pb-32">
+  <div class="grid gap-x-8 lg:grid-cols-12">
+    <div class="lg:col-span-9 lg:col-start-4">
+      <PillNav label="Insight categories" items={categories} />
+      <div class="mt-10">
+        <EntryList empty={insights.length === 0} emptyMessage="Nothing published in this category yet.">
+          {insights.map((insight) => <InsightRow insight={insight} as="h2" />)}
+        </EntryList>
+      </div>
+      <div class="mt-10 flex flex-wrap gap-x-8 gap-y-3">
+        <ArrowLink href="/rss.xml">Subscribe via RSS</ArrowLink>
+        <ArrowLink href="/search/">Search all technical content</ArrowLink>
+      </div>
+    </div>
+  </div>
+</div>

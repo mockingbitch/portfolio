@@ -1,4 +1,4 @@
-import { useId, useMemo, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useMemo, useState, type KeyboardEvent } from 'react';
 import type { ArchitectureDiagram, DiagramEdge, DiagramNode } from '@/data/diagrams';
 
 interface Props {
@@ -66,6 +66,19 @@ function routeEdge(edge: DiagramEdge, from: DiagramNode, to: DiagramNode): EdgeG
   };
 }
 
+/** True when the visitor has asked for reduced motion. */
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(true);
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReduced(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+  return reduced;
+}
+
 const pillClass = (active: boolean) =>
   `inline-flex h-9 items-center border px-3.5 text-sm transition-colors duration-150 ${
     active ? 'border-fg bg-fg text-bg' : 'border-line text-muted hover:border-line-strong hover:text-fg'
@@ -83,6 +96,7 @@ const stepButtonClass =
  */
 export default function DiagramExplorer({ diagrams, compact = false }: Props) {
   const uid = useId();
+  const reducedMotion = usePrefersReducedMotion();
   const [diagramIndex, setDiagramIndex] = useState(0);
   const [flowId, setFlowId] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState<number | null>(null);
@@ -221,7 +235,7 @@ export default function DiagramExplorer({ diagrams, compact = false }: Props) {
       </div>
 
       <div className={`mt-6 grid gap-px border border-line bg-line ${compact ? '' : 'lg:grid-cols-3'}`}>
-        <div className={`flex items-center overflow-x-auto bg-surface py-2 ${compact ? '' : 'lg:col-span-2'}`}>
+        <div className={`flex items-start overflow-x-auto bg-surface py-4 ${compact ? '' : 'lg:col-span-2'}`}>
           <svg
             viewBox={`0 0 ${width} ${height}`}
             role="group"
@@ -277,8 +291,14 @@ export default function DiagramExplorer({ diagrams, compact = false }: Props) {
                     strokeDasharray={edge.dashed ? '4 4' : undefined}
                     strokeLinejoin="round"
                     markerEnd={`url(#${active ? arrowActive : arrow})`}
-                    className={`transition-colors duration-200 ${active ? 'stroke-accent' : 'stroke-subtle'}`}
+                    className={`transition-colors duration-200 ${active ? 'edge-flow stroke-accent' : 'stroke-subtle'}`}
                   />
+                  {/* A packet travelling along the highlighted path. */}
+                  {active && flow && !reducedMotion && (
+                    <circle r="3.2" className="fill-accent" aria-hidden="true">
+                      <animateMotion dur="1.5s" repeatCount="indefinite" path={d} />
+                    </circle>
+                  )}
                   {number !== undefined ? (
                     <g aria-hidden="true">
                       <circle cx={anchor === 'start' ? label.x + 2 : label.x} cy={label.y - 4} r="9" className="fill-accent" />
@@ -319,7 +339,6 @@ export default function DiagramExplorer({ diagrams, compact = false }: Props) {
                   role="button"
                   tabIndex={0}
                   aria-pressed={isSelected}
-                  aria-label={`${node.label}, ${node.kind}`}
                   onClick={() => toggleNode(node.id)}
                   onKeyDown={(event) => onNodeKey(event, node.id)}
                   className="group cursor-pointer outline-none transition-opacity duration-200"
@@ -333,7 +352,7 @@ export default function DiagramExplorer({ diagrams, compact = false }: Props) {
                     rx="2"
                     strokeWidth={isSelected ? 1.75 : 1}
                     className={`fill-bg transition-colors duration-150 group-hover:stroke-fg group-focus-visible:stroke-accent group-focus-visible:[stroke-width:2.5] ${
-                      isSelected ? 'stroke-accent' : 'stroke-line-strong'
+                      isSelected ? 'node-active stroke-accent' : flow && active ? 'stroke-accent' : 'stroke-line-strong'
                     }`}
                   />
                   <text x={x} y={node.sublabel ? y - 2 : y + 4.5} textAnchor="middle" className="fill-fg text-[13px] font-medium">
